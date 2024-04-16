@@ -1,79 +1,158 @@
-import argparse
-import time
-import sys
+#!/usr/bin/python3
+ 
+import dbus
 import os
+import time
+ 
+from advertisement import Advertisement
+from service import Application, Service, Characteristic, Descriptor
+from matrix import Matrix
+from PIL import Image
+from rgbmatrix import graphics
+import threading
 
-sys.path.append(os.path.abspath(os.path.dirname(__file__) + '/..'))
-from rgbmatrix import RGBMatrix, RGBMatrixOptions
+GATT_CHRC_IFACE = "org.bluez.GattCharacteristic1"
+DIR = '/home/totem/totem'
 
+class StoppableThread(threading.Thread):
+    """Thread class with a stop() method. The thread itself has to check
+    regularly for the stopped() condition."""
 
-class Totem(object):
+    def __init__(self,  *args, **kwargs):
+        super(StoppableThread, self).__init__(*args, **kwargs)
+        self._stop_event = threading.Event()
+
+    def stop(self):
+        self._stop_event.set()
+
+    def stopped(self):
+        return self._stop_event.is_set()
+
+class Picture(Matrix):
     def __init__(self, *args, **kwargs):
-        self.parser = argparse.ArgumentParser()
-
-        self.parser.add_argument("-r", "--led-rows", action="store", help="Display rows. 16 for 16x32, 32 for 32x32. Default: 32", default=32, type=int)
-        self.parser.add_argument("--led-cols", action="store", help="Panel columns. Typically 32 or 64. (Default: 32)", default=32, type=int)
-        self.parser.add_argument("-c", "--led-chain", action="store", help="Daisy-chained boards. Default: 1.", default=1, type=int)
-        self.parser.add_argument("-P", "--led-parallel", action="store", help="For Plus-models or RPi2: parallel chains. 1..3. Default: 1", default=1, type=int)
-        self.parser.add_argument("-p", "--led-pwm-bits", action="store", help="Bits used for PWM. Something between 1..11. Default: 11", default=11, type=int)
-        self.parser.add_argument("-b", "--led-brightness", action="store", help="Sets brightness level. Default: 100. Range: 1..100", default=100, type=int)
-        self.parser.add_argument("-m", "--led-gpio-mapping", help="Hardware Mapping: regular, adafruit-hat, adafruit-hat-pwm" , choices=['regular', 'regular-pi1', 'adafruit-hat', 'adafruit-hat-pwm'], type=str)
-        self.parser.add_argument("--led-scan-mode", action="store", help="Progressive or interlaced scan. 0 Progressive, 1 Interlaced (default)", default=1, choices=range(2), type=int)
-        self.parser.add_argument("--led-pwm-lsb-nanoseconds", action="store", help="Base time-unit for the on-time in the lowest significant bit in nanoseconds. Default: 130", default=130, type=int)
-        self.parser.add_argument("--led-show-refresh", action="store_true", help="Shows the current refresh rate of the LED panel")
-        self.parser.add_argument("--led-slowdown-gpio", action="store", help="Slow down writing to GPIO. Range: 0..4. Default: 1", default=1, type=int)
-        self.parser.add_argument("--led-no-hardware-pulse", action="store", help="Don't use hardware pin-pulse generation")
-        self.parser.add_argument("--led-rgb-sequence", action="store", help="Switch if your matrix has led colors swapped. Default: RGB", default="RGB", type=str)
-        self.parser.add_argument("--led-pixel-mapper", action="store", help="Apply pixel mappers. e.g \"Rotate:90\"", default="", type=str)
-        self.parser.add_argument("--led-row-addr-type", action="store", help="0 = default; 1=AB-addressed panels; 2=row direct; 3=ABC-addressed panels; 4 = ABC Shift + DE direct", default=0, type=int, choices=[0,1,2,3,4])
-        self.parser.add_argument("--led-multiplexing", action="store", help="Multiplexing type: 0=direct; 1=strip; 2=checker; 3=spiral; 4=ZStripe; 5=ZnMirrorZStripe; 6=coreman; 7=Kaler2Scan; 8=ZStripeUneven... (Default: 0)", default=0, type=int)
-        self.parser.add_argument("--led-panel-type", action="store", help="Needed to initialize special panels. Supported: 'FM6126A'", default="", type=str)
-        self.parser.add_argument("--led-no-drop-privs", dest="drop_privileges", help="Don't drop privileges from 'root' after initializing the hardware.", action='store_false')
-        self.parser.set_defaults(drop_privileges=True)
-
-    def usleep(self, value):
-        time.sleep(value / 1000000.0)
-
+        super(Picture, self).__init__(*args, **kwargs)
+        self.value = 'cry'
+        self.thread = None
+        
     def run(self):
-        print("Running")
+        names = [x.split('.')[0] for x in os.listdir(f'{DIR}/images')]
+        filenames = os.listdir(f'{DIR}/images')
 
-    def process(self):
-        self.args = self.parser.parse_args()
-
-        options = RGBMatrixOptions()
-
-        if self.args.led_gpio_mapping != None:
-          options.hardware_mapping = self.args.led_gpio_mapping
-        options.rows = 32
-        options.cols = 64
-        options.chain_length = 2
-        options.parallel = self.args.led_parallel
-        options.row_address_type = self.args.led_row_addr_type
-
-        options.pwm_bits = self.args.led_pwm_bits
-        options.brightness = 60  #self.args.led_brightness
-        options.pwm_lsb_nanoseconds = self.args.led_pwm_lsb_nanoseconds
-        options.led_rgb_sequence = self.args.led_rgb_sequence
-        options.pixel_mapper_config = 'U-Mapper'
-        options.panel_type = self.args.led_panel_type
-
-        options.gpio_slowdown = 5
-
-        if self.args.led_show_refresh:
-          options.show_refresh_rate = 1
-
-        if self.args.led_no_hardware_pulse:
-          options.disable_hardware_pulsing = True
-        options.drop_privileges=False
-
-        self.matrix = RGBMatrix(options = options)
+        print('Running image...')
 
         try:
-            # Start loop
-            print("Press CTRL-C to stop sample")
-            self.run()
-        except KeyboardInterrupt:
-            print("Exiting\n")
-            sys.exit(0)
+            loc = names.index(self.value)
+            file = filenames[loc]
+        except ValueError:
+            file = None
 
-        return True
+        if file is None:
+            self.thread = StoppableThread(target=self.scroll_text, args=(self.value,))
+            print('Starting text thread')
+            self.thread.start()
+        elif file.split('.')[1] == 'png':
+            image = Image.open(f'{DIR}/images/{file}')
+            self.matrix.SetImage(image.convert('RGB'))
+        elif file.split('.')[1] == 'gif':
+            gif = Image.open(f'{DIR}/images/{file}')
+            num_frames = gif.n_frames
+            frames = []
+            for frame_index in range(0, num_frames):
+                gif.seek(frame_index)
+                frame = gif.copy()
+                frame.thumbnail((self.matrix.width, self.matrix.height), Image.LANCZOS)
+                canvas = self.matrix.CreateFrameCanvas()
+                canvas.SetImage(frame.convert("RGB"))
+                frames.append(canvas)
+            gif.close()
+            self.thread = StoppableThread(target=self.gif, args=(frames, num_frames))
+            print('Starting GIF thread')
+            self.thread.start()
+        elif file.split('.')[1] == 'txt':
+            with open(f'images/{file}', 'r') as f:
+                text = f.readline().rstrip()
+
+            self.thread = StoppableThread(target=self.scroll_text, args=(text,))
+            print('Starting text thread')
+            self.thread.start()
+
+    def gif(self, frames, num_frames):
+        cur_frame = 0
+        while(True):
+            self.matrix.SwapOnVSync(frames[cur_frame], framerate_fraction=10)
+            if cur_frame == num_frames - 1:
+                cur_frame = 0
+            else:
+                cur_frame += 1
+            if self.thread.stopped():
+                break
+
+    def scroll_text(self, string):
+        offscreen_canvas = self.matrix.CreateFrameCanvas()
+        font = graphics.Font()
+        font.LoadFont(f'{DIR}/fonts/9x18.bdf') 
+        color = graphics.Color(255, 0, 0)
+        pos = offscreen_canvas.width
+        while True:
+            offscreen_canvas.Clear()
+            length = graphics.DrawText(offscreen_canvas, font, pos, 32, color, string)
+            pos -= 1
+            if (pos + length < 0):
+                pos = offscreen_canvas.width
+            time.sleep(0.05)
+            offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
+            if self.thread.stopped():
+                break
+
+class TotemAdvertisement(Advertisement):
+    def __init__(self, index):
+        Advertisement.__init__(self, index, "peripheral")
+        self.add_local_name("Totem")
+        self.include_tx_power = True
+ 
+class TotemService(Service):
+    TOTEM_SVC_UUID = "00000001-dead-dead-dead-3e5b444bc3c1"
+ 
+    def __init__(self, index):
+        self.value = 'default'
+
+        Service.__init__(self, index, self.TOTEM_SVC_UUID, True)
+        self.add_characteristic(TotemCharacteristic(self))
+
+        self.totem = Picture()
+        self.totem.process()
+ 
+class TotemCharacteristic(Characteristic):
+    TOTEM_CHARACTERISTIC_UUID = "00000002-dead-dead-dead-3e5b444bc3c1"
+ 
+    def __init__(self, service):
+        Characteristic.__init__(
+                self, self.TOTEM_CHARACTERISTIC_UUID,
+                ["read", "write"], service)
+ 
+    def ReadValue(self, options):
+        text = f'Displaying {self.service.totem.value}'
+        value = []
+        for c in text:
+            value.append(dbus.Byte(c.encode())) 
+        return value
+
+    def WriteValue(self, value, options):
+        if self.service.totem.thread is not None:
+            self.service.totem.thread.stop()
+        self.service.totem.thread.join()
+        self.service.totem.value = ''.join([str(x) for x in value])
+        print(f'Changing totem to: {self.service.totem.value}')
+        self.service.totem.run()
+
+app = Application()
+app.add_service(TotemService(0))
+app.register()
+ 
+adv = TotemAdvertisement(0)
+adv.register()
+ 
+try:
+    app.run()
+except KeyboardInterrupt:
+    app.quit()
