@@ -16,7 +16,6 @@ class Matrix(object):
         self.parser.add_argument("-c", "--led-chain", action="store", help="Daisy-chained boards. Default: 1.", default=1, type=int)
         self.parser.add_argument("-P", "--led-parallel", action="store", help="For Plus-models or RPi2: parallel chains. 1..3. Default: 1", default=1, type=int)
         self.parser.add_argument("-p", "--led-pwm-bits", action="store", help="Bits used for PWM. Something between 1..11. Default: 11", default=11, type=int)
-        self.parser.add_argument("-b", "--led-brightness", action="store", help="Sets brightness level. Default: 100. Range: 1..100", default=100, type=int)
         self.parser.add_argument("-m", "--led-gpio-mapping", help="Hardware Mapping: regular, adafruit-hat, adafruit-hat-pwm" , choices=['regular', 'regular-pi1', 'adafruit-hat', 'adafruit-hat-pwm'], type=str)
         self.parser.add_argument("--led-scan-mode", action="store", help="Progressive or interlaced scan. 0 Progressive, 1 Interlaced (default)", default=1, choices=range(2), type=int)
         self.parser.add_argument("--led-pwm-lsb-nanoseconds", action="store", help="Base time-unit for the on-time in the lowest significant bit in nanoseconds. Default: 130", default=130, type=int)
@@ -37,7 +36,7 @@ class Matrix(object):
     def run(self):
         print("Running")
 
-    def process(self):
+    def process(self, brightness=50):
         self.args = self.parser.parse_args()
 
         options = RGBMatrixOptions()
@@ -46,15 +45,15 @@ class Matrix(object):
           options.hardware_mapping = self.args.led_gpio_mapping
         options.rows = 32
         options.cols = 64
-        options.chain_length = 2
+        options.chain_length = 4
         options.parallel = self.args.led_parallel
         options.row_address_type = self.args.led_row_addr_type
 
         options.pwm_bits = self.args.led_pwm_bits
-        options.brightness = 60  #self.args.led_brightness
+        options.brightness = brightness
         options.pwm_lsb_nanoseconds = self.args.led_pwm_lsb_nanoseconds
         options.led_rgb_sequence = self.args.led_rgb_sequence
-        options.pixel_mapper_config = 'U-Mapper'
+        options.pixel_mapper_config = 'V-Mapper'
         options.panel_type = self.args.led_panel_type
 
         options.gpio_slowdown = 5
@@ -67,13 +66,5 @@ class Matrix(object):
         options.drop_privileges=False
 
         self.matrix = RGBMatrix(options = options)
-
-        try:
-            # Start loop
-            print("Press CTRL-C to stop sample")
-            self.run()
-        except KeyboardInterrupt:
-            print("Exiting\n")
-            sys.exit(0)
 
         return True
