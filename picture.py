@@ -166,6 +166,7 @@ class Picture(Matrix):
     def scroll_text(self, string):
         offscreen_canvas = self.matrix.CreateFrameCanvas()
         font = graphics.Font()
+        print(offscreen_canvas.width, offscreen_canvas.height)
         font.LoadFont(f'{DIR}/fonts/9x18.bdf') 
         color = self.color
         pos = offscreen_canvas.width
