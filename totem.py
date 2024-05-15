@@ -49,7 +49,7 @@ class Command(Characteristic):
     def WriteValue(self, value, options):
         if self.service.totem.thread is not None:
             self.service.totem.thread.stop()
-        self.service.totem.thread.join()
+            self.service.totem.thread.join()
         self.service.totem.name = ''.join([str(x) for x in value])
         print(f'Changing totem to: {self.service.totem.name}')
         self.service.totem.run()

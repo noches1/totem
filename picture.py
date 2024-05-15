@@ -97,8 +97,6 @@ class Picture(Matrix):
     def __init__(self, *args, **kwargs):
         super(Picture, self).__init__(*args, **kwargs)
         self.name = 'yoshi'
-        # self.name = 'hello world-party'
-        # self.name = 'hello world-b'
         self.thread = None
         self.color = graphics.Color(255, 0, 0)
 
@@ -115,9 +113,7 @@ class Picture(Matrix):
         }
 
     def double(self, image):
-        flip = ImageOps.flip(image)
-        flip = ImageOps.mirror(flip)
-        images = [image, flip]
+        images = [image, image]
         doubled = Image.new('RGB', (image.size[0], image.size[1] * 2))
         y_offset = 0
         for im in images:
@@ -141,7 +137,6 @@ class Picture(Matrix):
                 download_gif(self.args.gif, f'{DIR}/images/{lowercase_name}.gif', resize_to=TOTEM_LED_SIZE)
         else:
             print(f'Displaying text {self.name}')
-
 
         print('Running image...')
 
@@ -209,8 +204,6 @@ class Picture(Matrix):
     def scroll_text(self, string):
         offscreen_canvas = self.matrix.CreateFrameCanvas()
         font = graphics.Font()
-        print('Printing width and height of offscreen_canvas')
-        print(offscreen_canvas.width, offscreen_canvas.height)
         font.LoadFont(f'{DIR}/fonts/9x18.bdf') 
         color = self.color
         pos = offscreen_canvas.width
@@ -219,6 +212,7 @@ class Picture(Matrix):
                 color = RAINBOW_COLORS[(pos//2) % 20]
             offscreen_canvas.Clear()
             length = graphics.DrawText(offscreen_canvas, font, pos, 32, color, string)
+            length2 = graphics.DrawText(offscreen_canvas, font, pos, 96, color, string)
             pos -= 1
             if (pos + length < 0):
                 pos = offscreen_canvas.width
