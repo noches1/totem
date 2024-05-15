@@ -166,7 +166,7 @@ class Picture(Matrix):
         elif file.split('.')[1] == 'png':
             image = Image.open(f'{DIR}/images/{file}')
             # Resize every time
-            image.resize(TOTEM_LED_SIZE)
+            image = image.resize(TOTEM_LED_SIZE)
             image = self.double(image)
             self.matrix.SetImage(image.convert('RGB'))
         elif file.split('.')[1] == 'gif':
