@@ -55,7 +55,7 @@ class Command(Characteristic):
         self.service.totem.run()
 
 class Brightness(Characteristic):
-    TOTEM_CHARACTERISTIC_UUID = "00000003-dead-dead-dead-3e5b444bc3c1"
+    TOTEM_CHARACTERISTIC_UUID = "00000003-dead-dead-dead-b12164711e55"  # This is supposed to look like "brightness" in hex characters only
  
     def __init__(self, service):
         Characteristic.__init__(
@@ -64,6 +64,7 @@ class Brightness(Characteristic):
  
     def ReadValue(self, options):
         text = f'Brightness: {self.service.totem.matrix.brightness}'
+        print(text)
         value = []
         for c in text:
             value.append(dbus.Byte(c.encode())) 
@@ -71,16 +72,17 @@ class Brightness(Characteristic):
 
     def WriteValue(self, value, options):
         brightness = int(''.join([str(x) for x in value]))
-        print(brightness)
         if brightness > 0 and brightness <= 100:
-            print(f'!!! {brightness}')
-            self.totem.matrix.SetBrightness
-            print(self.totem.matrix)
-            print('asdf')
-            self.service.totem.matrix.SetBrightness(brightness)
-            #self.totem.process(100)
-            #self.totem.run()
-            print(self.totem.matrix)
+            print(f'Changing to brightness: {brightness}')
+            self.service.totem.matrix.brightness = brightness
+            # Repeat code from above, might be necessary every time we call run() again
+            if self.service.totem.thread is not None:
+                self.service.totem.thread.stop()
+                self.service.totem.thread.join()
+            print(f'Changing totem brightness to: {self.service.totem.matrix.brightness}')
+            self.service.totem.run()
+        else:
+            print('Please choose a brightness value between 0 and 100, otherwise you will be ignored')
 
 app = Application()
 app.add_service(TotemService(0))

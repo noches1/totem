@@ -109,6 +109,7 @@ class Picture(Matrix):
             '-r': graphics.Color(255, 0, 0),
             '-g': graphics.Color(0, 255, 0),
             '-b': graphics.Color(0, 0 , 255),
+            '-p': 'party',
             '-party': 'party',
         }
 
@@ -124,25 +125,26 @@ class Picture(Matrix):
     def run(self):
         if self.args.name:
             self.name = self.args.name
-        lowercase_name = self.name.lower()
+        lowercase_name = self.name.lower().strip()
 
         # List all the pre-downloaded images/gifs
-        names = [x.split('.')[0] for x in os.listdir(f'{DIR}/images')]
+        names = [x.split('.')[0].lower() for x in os.listdir(f'{DIR}/images')]
         # If image/gif can be downloaded
-        if (lowercase_name not in names) and (self.args.img or self.args.gif):
-            print('Image/gif does not exist, downloading from provided url...')
-            if self.args.img:
-                download_image(self.args.img, f'{DIR}/images/{lowercase_name}.png', resize_to=TOTEM_LED_SIZE)
-            if self.args.gif:
-                download_gif(self.args.gif, f'{DIR}/images/{lowercase_name}.gif', resize_to=TOTEM_LED_SIZE)
-        else:
-            print(f'Displaying text {self.name}')
+        if lowercase_name not in names:
+            if self.args.img or self.args.gif:
+                print('Image/gif does not exist, downloading from provided url...')
+                if self.args.img:
+                    download_image(self.args.img, f'{DIR}/images/{lowercase_name}.png', resize_to=TOTEM_LED_SIZE)
+                if self.args.gif:
+                    download_gif(self.args.gif, f'{DIR}/images/{lowercase_name}.gif', resize_to=TOTEM_LED_SIZE)
+            else:
+                print(f'Displaying text {self.name}')
 
         print('Running image...')
 
         filenames = os.listdir(f'{DIR}/images')
         try:
-            loc = names.index(self.name)
+            loc = names.index(lowercase_name)
             file = filenames[loc]
         except ValueError:
             file = None
