@@ -102,9 +102,14 @@ DIR = '/home/totem/totem'
 class Picture(Matrix):
     def __init__(self, *args, **kwargs):
         super(Picture, self).__init__(*args, **kwargs)
-        self.name = 'yoshi'
+        self.name = 'shrek'
         self.thread = None
         self.color = graphics.Color(255, 0, 0)
+
+        self.paths = []
+        for path, subdirs, files in os.walk(f'{DIR}/images'):
+            for name in files:
+                self.paths.append(os.path.join(path, name))
 
         self.parser.add_argument("--img", help="URL of image to download, resize, and render", type=str)
         self.parser.add_argument("--gif", help="URL of GIF to download, resize, and render", type=str)
@@ -115,6 +120,7 @@ class Picture(Matrix):
             '-r': graphics.Color(255, 0, 0),
             '-g': graphics.Color(0, 255, 0),
             '-b': graphics.Color(0, 0 , 255),
+            '-w': graphics.Color(255, 255, 255),
             '-p': 'party',
             '-party': 'party',
         }
@@ -152,7 +158,7 @@ class Picture(Matrix):
             self.thread.start()
             return  # TODO: Double check that this doesn't mess anything up
         elif lowercase_name == 'random':
-            lowercase_name = random.choice(names)
+            lowercase_name = random.choice(paths)
             print(f'Randomly chose this image/gif: {lowercase_name}')
         elif lowercase_name == 'help':
             self.name = " | ".join(names)  # Just show all the text, which happens to go through self.name for some reason
@@ -173,9 +179,14 @@ class Picture(Matrix):
         print('Running image...')
 
         filenames = sorted(os.listdir(f'{DIR}/images'))
+
+        print(lowercase_name)
+
         try:
+            names = [x.split('/')[-1].split('.')[0] for x in self.paths]
+            print(names)
             loc = names.index(lowercase_name)
-            file = filenames[loc]
+            file = self.paths[loc]
         except ValueError:
             file = None
 
@@ -191,13 +202,13 @@ class Picture(Matrix):
             print('Starting text thread')
             self.thread.start()
         elif file.split('.')[1] == 'png':
-            image = Image.open(f'{DIR}/images/{file}')
+            image = Image.open(f'{file}')
             # Resize every time
             image = image.resize(TOTEM_LED_SIZE)
             image = self.double(image)
             self.matrix.SetImage(image.convert('RGB'))
         elif file.split('.')[1] == 'gif':
-            gif = Image.open(f'{DIR}/images/{file}')
+            gif = Image.open(f'{file}')
             num_frames = gif.n_frames
             frames = []
             for frame_index in range(0, num_frames):
