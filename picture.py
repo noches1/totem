@@ -9,6 +9,7 @@ from PIL import Image, ImageOps
 from io import BytesIO
 import os
 import threading
+import random
 
 TOTEM_LED_SIZE = (64, 64)
 RAINBOW_COLORS = [
@@ -33,6 +34,11 @@ RAINBOW_COLORS = [
     graphics.Color(255, 0, 152),
     graphics.Color(255, 0, 76)
 ]
+#SPECIAL_COMMANDS = [
+#    "affirmations",
+#    "help",
+#    "random",
+#]
 
 def download_image(url, output_path, resize_to=TOTEM_LED_SIZE):
     try:
@@ -128,7 +134,31 @@ class Picture(Matrix):
         lowercase_name = self.name.lower().strip()
 
         # List all the pre-downloaded images/gifs
-        names = [x.split('.')[0].lower() for x in os.listdir(f'{DIR}/images')]
+        names = sorted([x.split('.')[0].lower() for x in os.listdir(f'{DIR}/images')])
+
+        # Check if it's a special command
+        if lowercase_name.startswith('affirmations'):
+            split_str = lowercase_name.split('-')
+            # Only update color if it's specifically affirmations-{color}
+            if len(split_str) == 2 and split_str[0] == 'affirmations':
+                split_color = split_str[-1]
+                color_key = f'-{split_color}'
+                print(f'Updating color to {color_key}!')
+                if color_key in self.colors.keys():
+                    print('Actually updated')
+                    self.color = self.colors[color_key]
+            self.thread = StoppableThread(target=self.display_affirmations)
+            print('Starting affirmations text thread')
+            self.thread.start()
+            return  # TODO: Double check that this doesn't mess anything up
+        elif lowercase_name == 'random':
+            lowercase_name = random.choice(names)
+            print(f'Randomly chose this image/gif: {lowercase_name}')
+        elif lowercase_name == 'help':
+            self.name = " | ".join(names)  # Just show all the text, which happens to go through self.name for some reason
+            print('Looking at help')
+        textsize = 'small' if lowercase_name == 'help' else 'normal'
+
         # If image/gif can be downloaded
         if lowercase_name not in names:
             if self.args.img or self.args.gif:
@@ -142,7 +172,7 @@ class Picture(Matrix):
 
         print('Running image...')
 
-        filenames = os.listdir(f'{DIR}/images')
+        filenames = sorted(os.listdir(f'{DIR}/images'))
         try:
             loc = names.index(lowercase_name)
             file = filenames[loc]
@@ -157,7 +187,7 @@ class Picture(Matrix):
                     self.color = self.colors[c]
                     text_to_remove = self.name.rsplit('-', 1)[-1]
                     text_to_display = self.name[:-(len(text_to_remove)+1)]
-            self.thread = StoppableThread(target=self.scroll_text, args=(text_to_display,))
+            self.thread = StoppableThread(target=self.scroll_text, args=(text_to_display, textsize))
             print('Starting text thread')
             self.thread.start()
         elif file.split('.')[1] == 'png':
@@ -188,7 +218,7 @@ class Picture(Matrix):
             with open(f'images/{file}', 'r') as f:
                 text = f.readline().rstrip()
 
-            self.thread = StoppableThread(target=self.scroll_text, args=(text,))
+            self.thread = StoppableThread(target=self.scroll_text, args=(text, textsize))
             print('Starting text thread')
             self.thread.start()
 
@@ -203,10 +233,15 @@ class Picture(Matrix):
             if self.thread.stopped():
                 break
 
-    def scroll_text(self, string):
+    def scroll_text(self, string, textsize = 'normal'):
         offscreen_canvas = self.matrix.CreateFrameCanvas()
         font = graphics.Font()
-        font.LoadFont(f'{DIR}/fonts/9x18.bdf') 
+        if textsize == 'normal':
+            font.LoadFont(f'{DIR}/fonts/9x18.bdf')
+        elif textsize == 'small':
+            font.LoadFont(f'{DIR}/fonts/4x6.bdf')
+        else:
+            raise ValueError('Should never have a text size that is not normal or small')
         color = self.color
         pos = offscreen_canvas.width
         while True:
@@ -218,6 +253,65 @@ class Picture(Matrix):
             pos -= 1
             if (pos + length < 0):
                 pos = offscreen_canvas.width
+            time.sleep(0.05)
+            offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
+            if self.thread.stopped():
+                break
+
+
+    def display_affirmations(self):
+        offscreen_canvas = self.matrix.CreateFrameCanvas()
+        font = graphics.Font()
+        font.LoadFont(f'{DIR}/fonts/9x18.bdf') 
+        # font.LoadFont(f'{DIR}/fonts/4x6.bdf') 
+        color = self.color
+        counter = 0
+        wait_counter = 0
+        WAIT_TIME = 32
+        word_counter = 0
+        words_to_cycle = ["enough", "loved", "needed", 
+                          "unique", "strong", "perfect",
+                          "worthy"]  # Don't do any words longer than 7 letters otherwise it will be too long
+
+        def staircase_function(x):
+            if x < 32:
+                return x
+            elif x > 64:
+                return x - 32
+            else:
+                return 32
+
+        while True:
+            if self.color == 'party':
+                color = RAINBOW_COLORS[(counter//2) % 20]
+            offscreen_canvas.Clear()
+            aff_word = words_to_cycle[word_counter]
+            # y_pos = staircase_function(counter)
+            # x_pos = staircase_function(counter) - len(aff_word) * 9
+            x_pos = counter - len(aff_word)*9
+            counter += 1
+
+            graphics.DrawText(offscreen_canvas, font, 19, 20, color, "You")
+            graphics.DrawText(offscreen_canvas, font, 19, 32, color, "are")
+            graphics.DrawText(offscreen_canvas, font, 19, 20+64, color, "You")
+            graphics.DrawText(offscreen_canvas, font, 19, 32+64, color, "are")
+            length1 = graphics.DrawText(offscreen_canvas, font, x_pos, 44 , color, aff_word)
+            length2 = graphics.DrawText(offscreen_canvas, font, x_pos, 44+64, color, aff_word)
+
+            # Pause at the halfway point
+            if x_pos + length1//2 > offscreen_canvas.width//2 and wait_counter < WAIT_TIME:
+                wait_counter += 1
+                counter -= 1  # Decrement the normal counter so it's as if it didn't go up
+
+            if x_pos > offscreen_canvas.width:
+            #you_are_text1 = graphics.DrawText(offscreen_canvas, font, 2, 32, color, "You are")
+            #you_are_text2 = graphics.DrawText(offscreen_canvas, font, 2, 96, color, "You are")
+            #length1 = graphics.DrawText(offscreen_canvas, font, 34, y_pos   , color, aff_word)
+            #length2 = graphics.DrawText(offscreen_canvas, font, 34, y_pos+64, color, aff_word)
+            #if (y_pos + 64 > offscreen_canvas.height):
+                counter = 0
+                wait_counter = 0
+                word_counter = (word_counter+1) % len(words_to_cycle)
             time.sleep(0.05)
             offscreen_canvas = self.matrix.SwapOnVSync(offscreen_canvas)
             if self.thread.stopped():
