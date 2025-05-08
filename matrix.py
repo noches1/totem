@@ -66,5 +66,8 @@ class Matrix(object):
         options.drop_privileges=False
 
         self.matrix = RGBMatrix(options = options)
+        self.canvas = self.matrix.CreateFrameCanvas()
+
+        self.canvases = [self.matrix.CreateFrameCanvas() for i in range(10)]
 
         return True
