@@ -87,7 +87,7 @@ class PokerscopeQuiz:
         y = start_y
 
         hero_width = self.renderer.calculate_text_width(hero, "sm")
-        canvas_width = self.renderer.canvas.width
+        canvas_width = 64 if IS_DEV else self.renderer.canvas.width
         _, question_height = self.renderer.render_text(
             hero, (canvas_width - hero_width) // 2, y, WHITE, "sm"
         )
@@ -194,7 +194,10 @@ class PokerscopeAd:
 
         self.ad_position = (self.ad_position[0] - 1, self.ad_position[1])
         if self.ad_position[0] + ad_width < 0:
-            self.ad_position = (self.renderer.canvas.width, self.ad_position[1])
+            self.ad_position = (
+                64 if IS_DEV else self.renderer.canvas.width,
+                self.ad_position[1],
+            )
 
     def render_ad(self, x, y, colour):
         return self.renderer.render_text("get.pokerscope.app", x, y, colour)
@@ -213,7 +216,7 @@ class Pokerscope:
     def __init__(self, font_dir, canvas):
         self.renderer = PokerscopeRenderer(canvas, font_dir)
         self.quiz = PokerscopeQuiz(questions, self.renderer)
-        self.ad = PokerscopeAd(self.renderer, 0, 16)
+        self.ad = PokerscopeAd(self.renderer, (64 if IS_DEV else canvas.width) - 1, 16)
         self.questions_shown = 0
         self.state = "quiz"
         self.ad_frames = 0
@@ -230,8 +233,8 @@ class Pokerscope:
                 self.state = "ad"
                 self.ad_frames = 0
                 self.questions_shown = 0
-
-            self.quiz.render()
+            else:
+                self.quiz.render()
         elif self.state == "ad":
             self.ad_frames += 1
             self.ad.render()
