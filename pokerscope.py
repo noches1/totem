@@ -1,8 +1,13 @@
 import enum
 import math
 import time
+from dev import IS_DEV
 
-from rgbmatrix import graphics
+if IS_DEV:
+    print("rgbmatrix not found, Importing RGBMatrixEmulator")
+    from RGBMatrixEmulator import graphics
+else:
+    from rgbmatrix import graphics  # type: ignore
 
 
 WHITE = graphics.Color(255, 255, 255)
@@ -31,21 +36,20 @@ SECONDS_PER_QUESTION_STATE = 1
 FRAMES_PER_QUESTION_STATE = FPS * SECONDS_PER_QUESTION_STATE
 FRAMES_PER_QUESTION = 2 * FRAMES_PER_QUESTION_STATE
 
-class Answer(enum.StrEnum):
-    FOLD = 'Fold'
-    OPEN = 'Open'
+ANSWER_OPEN = "Open"
+ANSWER_FOLD = "Fold"
 
 
 questions = [
     {
         'hero_position': 'UTG',
         'cards': 'AhKh',
-        'correct_action': Answer.OPEN,
+        'correct_action': ANSWER_OPEN,
     },
     {
         'hero_position': 'BU',
         'cards': '8d8s',
-        'correct_action': Answer.OPEN,
+        'correct_action': ANSWER_OPEN,
     }
 ]
 
@@ -97,10 +101,10 @@ class PokerscopeQuiz():
 
         cards_width = self.renderer.render_hole_cards(cards, x, y)
         offset_y = 0
-        for i, action in enumerate([Answer.FOLD, Answer.OPEN]):
+        for i, action in enumerate([ANSWER_FOLD, ANSWER_OPEN]):
             colour = WHITE
             if self.state == QuestionState.ANSWER:
-                if action == correct_action.value:
+                if action == correct_action:
                     colour = colours['c']
                 else:
                     colour = WHITE_50

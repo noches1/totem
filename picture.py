@@ -112,10 +112,7 @@ class StoppableThread(threading.Thread):
         return self._stop_event.is_set()
 
 
-# check linux vs macos here
-import platform
-
-if platform.system() == "Darwin":  # macOS
+if IS_DEV:
     DIR = os.path.dirname(os.path.abspath(__file__))
 else:  # Linux
     DIR = "/home/totem/totem"
