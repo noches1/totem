@@ -1,4 +1,5 @@
 import enum
+from re import L
 from dev import IS_DEV
 
 if IS_DEV:
@@ -191,7 +192,11 @@ class PokerscopeRenderer:
 class PokerscopeAd:
     def __init__(self, renderer, x, y):
         self.renderer = renderer
+        self.initial_ad_position = (x, y)
         self.ad_position = (x, y)
+
+    def reset(self):
+        self.ad_position = self.initial_ad_position
 
     def render(self):
         ad_width, ad_height = 0, 0
@@ -242,6 +247,7 @@ class Pokerscope:
 
             if self.questions_shown >= 3:
                 self.state = "ad"
+                self.ad.reset()
                 self.ad_frames = 0
                 self.questions_shown = 0
             else:
