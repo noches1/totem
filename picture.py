@@ -287,13 +287,13 @@ class Picture(Matrix):
             )
             print("Starting text thread")
             self.thread.start()
-        elif file.split(".")[1] == "png":
+        elif file.split(".")[-1] == "png":
             image = Image.open(f"{file}")
             # Resize every time
             image = image.resize(TOTEM_LED_SIZE)
             image = self.double(image)
             self.matrix.SetImage(image.convert("RGB"))
-        elif file.split(".")[1] == "gif":
+        elif file.split(".")[-1] == "gif":
             gif = Image.open(f"{file}")
             num_frames = gif.n_frames
             frames = []
@@ -312,7 +312,7 @@ class Picture(Matrix):
             self.thread = StoppableThread(target=self.gif, args=(frames, num_frames))
             print("Starting GIF thread")
             self.thread.start()
-        elif file.split(".")[1] == "txt":
+        elif file.split(".")[-1] == "txt":
             with open(f"images/{file}", "r") as f:
                 text = f.readline().rstrip()
 
