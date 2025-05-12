@@ -32,18 +32,24 @@ ANSWER_OPEN = "Open"
 ANSWER_FOLD = "Fold"
 
 
-questions = [
+sb_folds = [
     {
-        "hero_position": "UTG",
-        "cards": "AhKh",
-        "correct_action": ANSWER_OPEN,
-    },
-    {
-        "hero_position": "BU",
-        "cards": "8d8s",
-        "correct_action": ANSWER_OPEN,
-    },
+        "hero_position": "SB",
+        "correct_action": ANSWER_FOLD,
+        "cards": hand,
+    }
+    for hand in ["9h5h", "Js3s", "9c7d", "Kh7s", "7d4d"]
 ]
+sb_opens = [
+    {
+        "hero_position": "SB",
+        "correct_action": ANSWER_OPEN,
+        "cards": hand,
+    }
+    for hand in ["Qs2s", "6c4c", "Qs9c", "Ah4d", "Th6h"]
+]
+
+questions = [*sb_folds, *sb_opens]
 
 
 class QuestionState(enum.IntEnum):
@@ -132,6 +138,11 @@ class PokerscopeRenderer:
         for c in text:
             width += font.CharacterWidth(ord(c))
         return width
+
+    def render_frame(self):
+        if not IS_DEV:
+            return
+        graphics.DrawLine(self.canvas, 64, 0, 64, self.canvas.height, WHITE)
 
     def render_text(self, text, x, y, colour, size="md"):
         font = self.text_fonts.get(size, self.text_fonts["md"])
@@ -240,3 +251,5 @@ class Pokerscope:
             self.ad.render()
             if self.ad_frames > NUM_AD_FRAMES:
                 self.state = "quiz"
+
+        self.renderer.render_frame()
