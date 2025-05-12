@@ -1,5 +1,5 @@
+import random
 import enum
-from re import L
 from dev import IS_DEV
 
 if IS_DEV:
@@ -25,7 +25,7 @@ suits = {"c": "♣︎", "d": "♦︎", "h": "♥︎", "s": "♠︎"}
 FPS = round(1 / 0.015)
 
 # Questions have two states
-SECONDS_PER_QUESTION_STATE = 1
+SECONDS_PER_QUESTION_STATE = 5
 FRAMES_PER_QUESTION_STATE = FPS * SECONDS_PER_QUESTION_STATE
 FRAMES_PER_QUESTION = 2 * FRAMES_PER_QUESTION_STATE
 
@@ -33,24 +33,27 @@ ANSWER_OPEN = "Open"
 ANSWER_FOLD = "Fold"
 
 
-sb_folds = [
-    {
-        "hero_position": "SB",
-        "correct_action": ANSWER_FOLD,
-        "cards": hand,
-    }
-    for hand in ["9h5h", "Js3s", "9c7d", "Kh7s", "7d4d"]
-]
-sb_opens = [
-    {
-        "hero_position": "SB",
-        "correct_action": ANSWER_OPEN,
-        "cards": hand,
-    }
-    for hand in ["Qs2s", "6c4c", "Qs9c", "Ah4d", "Th6h"]
-]
+def make_questions(position, answer, hole_cards):
+    return [
+        {"hero_position": position, "correct_action": answer, "cards": hand}
+        for hand in hole_cards
+    ]
 
-questions = [*sb_folds, *sb_opens]
+
+sb_folds = ["9h5h", "Js3s", "9c7d", "Kh7s", "7d4d"]
+sb_opens = ["Qs2s", "6c4c", "Qs9c", "Ah4d", "Th6h"]
+utg_folds = ["Qd7d", "Kh4h", "JcTd", "Ts8s", "2c2h"]
+utg_opens = ["Qh8h", "Ks5s", "Ad2d", "AsTh", "6s6d"]
+bu_folds = ["Js3s", "9h5h", "Qc8d", "Ks6h", "4h3h", "As2h"]
+bu_opens = ["As4s", "9h6h", "Ks2s", "6h5h", "Td8s"]
+questions = [
+    *make_questions("SB", ANSWER_FOLD, sb_folds),
+    *make_questions("SB", ANSWER_OPEN, sb_opens),
+    *make_questions("UTG", ANSWER_OPEN, utg_opens),
+    *make_questions("UTG", ANSWER_FOLD, utg_folds),
+    *make_questions("BTN", ANSWER_OPEN, bu_opens),
+    *make_questions("BTN", ANSWER_FOLD, bu_folds),
+]
 
 
 class QuestionState(enum.IntEnum):
@@ -118,7 +121,7 @@ class PokerscopeRenderer:
     def __init__(self, canvas, font_dir):
         self.canvas = canvas
         self.rank_font = graphics.Font()
-        self.rank_font.LoadFont(f"{font_dir}/7x13.bdf")
+        self.rank_font.LoadFont(f"{font_dir}/8x13B.bdf")
         self.suit_font = graphics.Font()
         self.suit_font.LoadFont(f"{font_dir}/10x20.bdf")
         self.text_fonts = {
@@ -230,8 +233,10 @@ NUM_AD_FRAMES = round(FPS * SECONDS_TO_SHOW_AD)
 
 class Pokerscope:
     def __init__(self, font_dir, canvas):
+        shuffled_questions = questions[:]
+        random.shuffle(shuffled_questions)
         self.renderer = PokerscopeRenderer(canvas, font_dir)
-        self.quiz = PokerscopeQuiz(questions, self.renderer)
+        self.quiz = PokerscopeQuiz(shuffled_questions, self.renderer)
         self.ad = PokerscopeAd(self.renderer, (64 if IS_DEV else canvas.width) - 1, 16)
         self.questions_shown = 0
         self.state = "quiz"
