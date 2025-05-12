@@ -1,15 +1,20 @@
 #!/usr/bin/env python
+from dev import IS_DEV
 from matrix import Matrix
-from rgbmatrix import graphics
 import time
 from PIL import Image
-import argparse
 import requests
-from PIL import Image, ImageOps
+from PIL import Image
 from io import BytesIO
 import os
 import threading
 import random
+
+if IS_DEV:
+    print('rgbmatrix not found, Importing RGBMatrixEmulator')
+    from RGBMatrixEmulator import graphics
+else:
+    from rgbmatrix import graphics # type: ignore
 
 START_INSTRUCTIONS_STR = "Welcome! Use nRF Connect, connect to `totem`, and edit the UTF-8 value of the characteristic that starts with 000002. Type 'help' for available commands, or just type any text you want!"
 TOTEM_LED_SIZE = (64, 64)
@@ -103,7 +108,12 @@ class StoppableThread(threading.Thread):
     def stopped(self):
         return self._stop_event.is_set()
 
-DIR = '/home/totem/totem'
+# check linux vs macos here
+import platform
+if platform.system() == 'Darwin':  # macOS
+    DIR = os.path.dirname(os.path.abspath(__file__))
+else: # Linux
+    DIR = '/home/totem/totem'
 
 class Picture(Matrix):
     def __init__(self, *args, **kwargs):
@@ -280,7 +290,10 @@ class Picture(Matrix):
     def gif(self, frames, num_frames):
         cur_frame = 1 # TODO why does frame 0 glitch?
         while(True):
-            self.matrix.SwapOnVSync(frames[cur_frame], framerate_fraction=10)
+            if IS_DEV:
+                self.matrix.SwapOnVSync(frames[cur_frame])
+            else:
+                self.matrix.SwapOnVSync(frames[cur_frame], framerate_fraction=10)
             if cur_frame == num_frames - 1:
                 cur_frame = 1
             else:
@@ -292,7 +305,10 @@ class Picture(Matrix):
         cur_frame = 1
         i = 0
         while i < iters:
-            self.matrix.SwapOnVSync(frames[cur_frame], framerate_fraction=framerate)
+            if IS_DEV:
+                self.matrix.SwapOnVSync(frames[cur_frame])
+            else:
+                self.matrix.SwapOnVSync(frames[cur_frame], framerate_fraction=framerate)
             if cur_frame == num_frames - 1:
                 cur_frame = 1
                 i += 1

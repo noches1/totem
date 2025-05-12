@@ -3,9 +3,15 @@ import time
 import sys
 import os
 
-sys.path.append(os.path.abspath(os.path.dirname(__file__) + '/..'))
-from rgbmatrix import RGBMatrix, RGBMatrixOptions
+from dev import IS_DEV
 
+sys.path.append(os.path.abspath(os.path.dirname(__file__) + '/..'))
+
+if IS_DEV:
+    print('rgbmatrix not found, Importing RGBMatrixEmulator')
+    from RGBMatrixEmulator import RGBMatrix, RGBMatrixOptions
+else:
+    from rgbmatrix import RGBMatrix, RGBMatrixOptions # type: ignore
 
 class Matrix(object):
     def __init__(self, *args, **kwargs):
@@ -43,8 +49,12 @@ class Matrix(object):
 
         if self.args.led_gpio_mapping != None:
           options.hardware_mapping = self.args.led_gpio_mapping
-        options.rows = 32
-        options.cols = 64
+        if IS_DEV:
+            options.rows = 64
+            options.cols = 128
+        else:
+            options.rows = 32
+            options.cols = 64
         options.chain_length = 4
         options.parallel = self.args.led_parallel
         options.row_address_type = self.args.led_row_addr_type

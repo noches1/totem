@@ -1,11 +1,9 @@
 #!/usr/bin/python3
  
 import dbus
-import os
-import time
  
 from advertisement import Advertisement
-from service import Application, Service, Characteristic, Descriptor
+from service import Application, Service, Characteristic
 from picture import Picture
 
 GATT_CHRC_IFACE = "org.bluez.GattCharacteristic1"
