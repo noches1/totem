@@ -5,8 +5,7 @@ import { Input } from "./components/ui/input";
 const isDev = import.meta.env.MODE === "development";
 const baseUrl = isDev ? "http://localhost" : "http://totem.local";
 
-type CommandName = "chibis" | "pokerscope" | "anime" | "affirmations";
-const changeCommand = async (command: CommandName) => {
+const changeCommand = async (command: string) => {
   await fetch(baseUrl + "/api/command", {
     method: "POST",
     body: JSON.stringify({ command }),
@@ -23,7 +22,7 @@ const filenameToCommand = (filename: string) => {
     .replace(".png", "")
     .replace(".gif", "")
     .replace(".jpg", "")
-    .replace(".jpeg", "") as CommandName;
+    .replace(".jpeg", "");
 };
 
 function App() {
@@ -40,13 +39,35 @@ function App() {
     };
     f();
   }, []);
-  const [input, setInput] = React.useState("");
+  const [customCommand, setCustomCommand] = React.useState("");
   const handleCustomCommand = React.useCallback(() => {
-    if (input !== "") {
-      changeCommand(input as CommandName);
-      setInput('');
+    if (customCommand === "") {
+      return;
     }
-  }, [input]);
+    changeCommand(customCommand);
+    setCustomCommand("");
+  }, [customCommand]);
+
+  const [affirmationsInput, setAffirmationsInput] = React.useState("");
+  const handleAffirmations = React.useCallback(() => {
+    if (affirmationsInput !== "") {
+      changeCommand("affirmations:" + affirmationsInput);
+    } else {
+      changeCommand("affirmations");
+    }
+  }, [affirmationsInput]);
+
+  const [singleInput1, setSingleInput1] = React.useState("");
+  const [singleInput2, setSingleInput2] = React.useState("");
+  const handleSingle = React.useCallback(() => {
+    if (singleInput1 === "" || singleInput2 === "") {
+      return;
+    }
+
+    changeCommand("single:" + singleInput1 + ":" + singleInput2);
+    setSingleInput1("");
+    setSingleInput2("");
+  }, [singleInput1, singleInput2]);
   return (
     <div className="flex flex-col gap-2">
       <div className="p-4 border-b">
@@ -54,34 +75,78 @@ function App() {
           Totem
         </h3>
       </div>
-      <div className="p-4 flex flex-col gap-6">
-        <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-          Currently displaying: look at the totem
-        </h4>
-
+      <div className="flex flex-col gap-2 p-4">
         <div className="flex flex-col gap-2">
-          <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-            Commands
-          </h4>
           <div className="flex flex-col gap-2">
-            <p className="font-medium tracking-tight scroll-m-20">Custom command</p>
-            <Input value={input} onChange={(e) => setInput(e.target.value)} />
-            <Button className="mb-8" onClick={handleCustomCommand}>Go</Button>
-            <Button onClick={() => changeCommand("affirmations")}>
-              Affirmations
-            </Button>
-            <Button onClick={() => changeCommand("pokerscope")}>
-              Pokerscope
-            </Button>
-            {allCommands.map((command) => (
+            <h4 className="font-medium tracking-tight scroll-m-20 col-span-2">
+              Custom command/scrolling text
+            </h4>
+            <div className="flex gap-2">
+              <Input
+                value={customCommand}
+                onChange={(e) => setCustomCommand(e.target.value)}
+              />
               <Button
-                key={command.name}
-                onClick={() => changeCommand(filenameToCommand(command.name))}
+                className="aspect-square"
+                disabled={customCommand === ""}
+                onClick={handleCustomCommand}
               >
-                {command.name} ({command.type})
+                Go
               </Button>
-            ))}
+            </div>
           </div>
+          <div className="flex flex-col gap-2">
+            <h4 className="font-medium tracking-tight scroll-m-20 col-span-2">
+              Affirmations
+            </h4>
+            <div className="flex gap-2">
+              <Input
+                value={affirmationsInput}
+                onChange={(e) => setAffirmationsInput(e.target.value)}
+                placeholder="Name (leave empty for 'You')"
+              />
+              <Button className="aspect-square" onClick={handleAffirmations}>
+                Go
+              </Button>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 mb-8">
+            <h4 className="font-medium tracking-tight scroll-m-20 col-span-2">
+              Single (idk what this is)
+            </h4>
+            <div className="flex gap-2">
+              <Input
+                className="flex-1"
+                value={singleInput1}
+                onChange={(e) => setSingleInput1(e.target.value)}
+                placeholder="File (e.g. tim)"
+              />
+              <Input
+                className="flex-1"
+                value={singleInput2}
+                onChange={(e) => setSingleInput2(e.target.value)}
+                placeholder="is single"
+              />
+              <Button
+                className="aspect-square"
+                onClick={handleSingle}
+                disabled={singleInput1 === "" || singleInput2 === ""}
+              >
+                Go
+              </Button>
+            </div>
+          </div>
+          <Button onClick={() => changeCommand("pokerscope")}>
+            Pokerscope
+          </Button>
+          {allCommands.map((command) => (
+            <Button
+              key={command.name}
+              onClick={() => changeCommand(filenameToCommand(command.name))}
+            >
+              {command.name}
+            </Button>
+          ))}
         </div>
       </div>
     </div>
