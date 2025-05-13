@@ -157,6 +157,14 @@ class Picture(Matrix):
             y_offset += im.size[1]
         return doubled
 
+    def run_command(self, value):
+        if self.thread is not None:
+            self.thread.stop()
+            self.thread.join()
+        self.name = ''.join([str(x) for x in value])
+        print(f'Changing totem to: {self.name}')
+        self.run()
+
     def run(self):
         if self.args.name:
             self.name = self.args.name

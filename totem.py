@@ -45,12 +45,7 @@ class Command(Characteristic):
         return value
 
     def WriteValue(self, value, options):
-        if self.service.totem.thread is not None:
-            self.service.totem.thread.stop()
-            self.service.totem.thread.join()
-        self.service.totem.name = ''.join([str(x) for x in value])
-        print(f'Changing totem to: {self.service.totem.name}')
-        self.service.totem.run()
+        self.service.totem.run_command(value)
 
 class Brightness(Characteristic):
     TOTEM_CHARACTERISTIC_UUID = "00000003-dead-dead-dead-b12164711e55"  # This is supposed to look like "brightness" in hex characters only

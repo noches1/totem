@@ -12,8 +12,4 @@ if __name__ == "__main__":
         command = input()
         if not command:
             break
-        if picture.thread is not None:
-            picture.thread.stop()
-            picture.thread.join()
-        picture.name = command
-        picture.run()
+        picture.run_command(command)
