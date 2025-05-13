@@ -364,6 +364,8 @@ class Picture(Matrix):
                 i += 1
             else:
                 cur_frame += 1
+            if self.thread.stopped():
+                break
 
     def scroll_text(self, string, wait_time=0.05, textsize="normal", once=False):
         font = graphics.Font()
