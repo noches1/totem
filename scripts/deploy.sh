@@ -11,8 +11,8 @@ echo "Building client..."
 echo "Client built!"
 
 echo "Zipping archive..."
-stashName=$(git stash create)
-git archive --format=zip -o totem.zip $stashName
+stashName=`git stash create`
+git archive --format=zip -o totem.zip ${uploadStash:-HEAD}
 echo "Created zip archive"
 
 echo "Uploading zip archive..."
