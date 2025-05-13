@@ -3,6 +3,7 @@ from dev import IS_DEV
 from matrix import Matrix
 import time
 from pokerscope import Pokerscope
+from pathlib import Path
 import requests
 from PIL import Image
 from io import BytesIO
@@ -112,16 +113,24 @@ class StoppableThread(threading.Thread):
         return self._stop_event.is_set()
 
 
+default_command = "shrek"
 if IS_DEV:
     DIR = os.path.dirname(os.path.abspath(__file__))
 else:  # Linux
     DIR = "/home/totem/totem"
+    default_command_path = Path("/home/totem/.default_command")
+    default_command_path.parent.mkdir(parents=True, exist_ok=True)
+    if not default_command_path.exists():
+        with open(default_command_path, "w") as f:
+            f.write("shrek")
+    with open(default_command_path, "r") as f:
+        default_command = f.read().strip()
 
 
 class Picture(Matrix):
     def __init__(self, *args, **kwargs):
         super(Picture, self).__init__(*args, **kwargs)
-        defaults = ["pokerscope"]
+        defaults = [default_command]
         self.name = random.choice(defaults)
         self.thread = None
         self.color = "party"
@@ -161,8 +170,8 @@ class Picture(Matrix):
         if self.thread is not None:
             self.thread.stop()
             self.thread.join()
-        self.name = ''.join([str(x) for x in value])
-        print(f'Changing totem to: {self.name}')
+        self.name = "".join([str(x) for x in value])
+        print(f"Changing totem to: {self.name}")
         self.run()
 
     def run(self):
