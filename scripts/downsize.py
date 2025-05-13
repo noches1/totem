@@ -22,30 +22,16 @@ def downsize():
             continue
 
         image_path = str(p)
-        path = Path(image_path)
-        parts = list(path.parts)
-        try:
-            idx = parts.index("images")
-            parts[idx] = "images-64x64"
-            old_path = image_path
-            new_path = Path(*parts)
-            print(f"{old_path} -> {new_path}")
-        except ValueError:
-            print(f"Error with {image_path}")
-            continue
-
-        new_path.parent.mkdir(parents=True, exist_ok=True)
-        image_path = str(new_path)
-
-        if image_path.endswith(".gif"):
-            with Image.open(old_path) as img:
+        if p.suffix.lower().endswith(".gif"):
+            with Image.open(image_path) as img:
                 frames = ImageSequence.Iterator(img)
                 frames = thumbnails(frames)
                 om = next(frames)
                 om.info = img.info
+                print(f"Saving {image_path}")
                 om.save(image_path, save_all=True, append_images=list(frames))
         else:
-            with Image.open(old_path) as img:
+            with Image.open(image_path) as img:
                 img = img.resize(TOTEM_LED_SIZE)
                 print(f"Saving {image_path}")
                 img.save(image_path)
