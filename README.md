@@ -22,6 +22,9 @@ Connect to the same network as the totem and SSH into the totem with <code>ssh t
 3. Find the totem in nRF Connect and open up the Bluetooth details
 4. The first characteristic determines what is running on the totem. Write a value encoded as UTF-8. The totem will search for a local image or GIF sharing the same name as the value. If no value is found, the totem will scroll the text across the screen.
 
+## Deploy new code
+`./scripts/deploy.sh`
+
 ## MacOS local running
 pip3 install -r requirements.txt
 python3 run_dev.py
