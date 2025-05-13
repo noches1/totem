@@ -3,6 +3,7 @@
 import dbus
 import threading
 
+from pathlib import Path
 from advertisement import Advertisement
 from service import Application, Service, Characteristic
 from picture import Picture
@@ -94,13 +95,19 @@ class TotemService(Service):
         self.totem.run()
 
 
-app = Application()
-totem_service = TotemService(0)
-app.add_service(totem_service)
-app.register()
+images_path = Path("images/")
+all_img_commands = [(p.name, p.is_dir()) for p in images_path.iterdir()]
 
-adv = TotemAdvertisement(0)
-adv.register()
+
+app = None
+if __name__ == "__main__":
+    app = Application()
+    totem_service = TotemService(0)
+    app.add_service(totem_service)
+    app.register()
+
+    adv = TotemAdvertisement(0)
+    adv.register()
 
 
 def start_flask_app():
@@ -132,6 +139,17 @@ def start_flask_app():
     def current_command():
         return jsonify({"command": run_redis_cli("GET", "command")})
 
+    @flask_app.route("/api/commands", methods=["GET"])
+    def list_commands():
+        return jsonify(
+            {
+                "commands": [
+                    {"type": "directory" if is_dir else "file", "name": name}
+                    for (name, is_dir) in all_img_commands
+                ]
+            }
+        )
+
     @flask_app.route("/", defaults={"path": ""})
     @flask_app.route("/<path:path>")
     def serve(path):
@@ -147,10 +165,10 @@ def start_flask_app():
     flask_app.run("0.0.0.0", port=80, debug=False)
 
 
-thread = threading.Thread(target=start_flask_app)
-
-try:
-    thread.start()
-    app.run()
-except KeyboardInterrupt:
-    app.quit()
+if __name__ == "__main__" and app is not None:
+    thread = threading.Thread(target=start_flask_app)
+    try:
+        thread.start()
+        app.run()
+    except KeyboardInterrupt:
+        app.quit()

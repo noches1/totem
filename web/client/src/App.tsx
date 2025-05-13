@@ -1,17 +1,44 @@
+import * as React from "react";
 import { Button } from "./components/ui/button";
 
 const isDev = import.meta.env.MODE === "development";
 const baseUrl = isDev ? "http://localhost" : "http://totem.local";
 
-type Command = "chibis" | "pokerscope" | "anime";
-const changeCommand = async (command: Command) => {
+type CommandName = "chibis" | "pokerscope" | "anime";
+const changeCommand = async (command: CommandName) => {
   await fetch(baseUrl + "/api/command", {
     method: "POST",
     body: JSON.stringify({ command }),
   });
 };
 
+interface Command {
+  type: "directory" | "file" | "special";
+  name: string;
+}
+
+const filenameToCommand = (filename: string) => {
+  return filename
+    .replace(".png", "")
+    .replace(".gif", "")
+    .replace(".jpg", "")
+    .replace(".jpeg", "") as CommandName;
+};
+
 function App() {
+  const [allCommands, setAllCommands] = React.useState<Command[]>([]);
+  React.useEffect(() => {
+    const f = async () => {
+      const response = await fetch(baseUrl + "/api/commands");
+      if (response.ok) {
+        const json = await response.json();
+        const commands = json.commands as Command[];
+        commands.sort((a, b) => a.name.localeCompare(b.name));
+        setAllCommands(json.commands);
+      }
+    };
+    f();
+  }, []);
   return (
     <div className="flex flex-col gap-2">
       <div className="p-4 border-b">
@@ -21,7 +48,7 @@ function App() {
       </div>
       <div className="p-4 flex flex-col gap-6">
         <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
-          Currently displaying: PLACEHOLDER
+          Currently displaying: look at the totem
         </h4>
 
         <div className="flex flex-col gap-2">
@@ -29,11 +56,17 @@ function App() {
             Commands
           </h4>
           <div className="flex flex-col gap-2">
-            <Button onClick={() => changeCommand("chibis")}>Chibis</Button>
             <Button onClick={() => changeCommand("pokerscope")}>
               Pokerscope
             </Button>
-            <Button onClick={() => changeCommand("anime")}>Anime</Button>
+            {allCommands.map((command) => (
+              <Button
+                key={command.name}
+                onClick={() => changeCommand(filenameToCommand(command.name))}
+              >
+                {command.name} ({command.type})
+              </Button>
+            ))}
           </div>
         </div>
       </div>

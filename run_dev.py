@@ -1,9 +1,8 @@
 from picture import Picture
-import time
 
 if __name__ == "__main__":
     picture = Picture()
-    if (not picture.process()):
+    if not picture.process():
         picture.print_help()
 
     picture.run()
@@ -13,3 +12,4 @@ if __name__ == "__main__":
         if not command:
             break
         picture.run_command(command)
+
