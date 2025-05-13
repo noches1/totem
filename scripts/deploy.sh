@@ -1,14 +1,18 @@
 #!/bin/bash
 echo "Checking connectivity..."
-if ! ping -c 1 totem.local > /dev/null 2>&1; then
-    echo "Error: Cannot connect to totem.local"
-    exit 1
+if ! ping -c 1 totem.local >/dev/null 2>&1; then
+        echo "Error: Cannot connect to totem.local"
+        exit 1
 fi
 echo "Connected!"
 
+echo "Building client..."
+pnpm --filter client build
+echo "Client built!"
+
 echo "Zipping archive..."
-stashName=`git stash create`
-git archive --format=zip -o totem.zip $stashName 
+stashName=$(git stash create)
+git archive --format=zip -o totem.zip $stashName
 echo "Created zip archive"
 
 echo "Uploading zip archive..."
