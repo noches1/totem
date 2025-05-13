@@ -3,7 +3,7 @@ import { Button } from "./components/ui/button";
 const isDev = import.meta.env.MODE === "development";
 const baseUrl = isDev ? "http://localhost" : "http://totem.local";
 
-type Command = "chibis";
+type Command = "chibis" | "pokerscope" | "anime";
 const changeCommand = async (command: Command) => {
   await fetch(baseUrl + "/api/command", {
     method: "POST",
@@ -30,6 +30,10 @@ function App() {
           </h4>
           <div className="flex flex-col gap-2">
             <Button onClick={() => changeCommand("chibis")}>Chibis</Button>
+            <Button onClick={() => changeCommand("pokerscope")}>
+              Pokerscope
+            </Button>
+            <Button onClick={() => changeCommand("anime")}>Anime</Button>
           </div>
         </div>
       </div>
