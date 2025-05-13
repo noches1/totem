@@ -7,7 +7,8 @@ fi
 echo "Connected!"
 
 echo "Zipping archive..."
-git archive --format=zip HEAD -o totem.zip
+stashName=`git stash create`
+git archive --format=zip $stashName -o totem.zip
 echo "Created zip archive"
 
 echo "Uploading zip archive..."
