@@ -1,14 +1,11 @@
-import glob
-import os
-
 from PIL import Image, ImageSequence
 from pathlib import Path
 
 SUPPORTED_EXTENSIONS = [".gif", ".jpg", ".jpeg", ".png"]
 
 TOTEM_LED_SIZE = (64, 64)
-base_dir = os.path.dirname(os.path.dirname(__file__))
-pattern = os.path.join(base_dir, "images", "**", "*.*")
+repo_root = Path(__file__).parent.parent
+images_dir = repo_root / "images"
 
 
 def thumbnails(frames):
@@ -19,7 +16,12 @@ def thumbnails(frames):
 
 
 def downsize():
-    for image_path in glob.glob(pattern):
+    for p in images_dir.rglob("*.*"):
+        if p.suffix.lower() not in SUPPORTED_EXTENSIONS:
+            print(f"Skipping {p} - not a supported extension")
+            continue
+
+        image_path = str(p)
         path = Path(image_path)
         parts = list(path.parts)
         try:
@@ -31,10 +33,6 @@ def downsize():
         except ValueError:
             print(f"Error with {image_path}")
             continue
-
-        for ext in SUPPORTED_EXTENSIONS:
-            if not image_path.endswith(ext):
-                continue
 
         new_path.parent.mkdir(parents=True, exist_ok=True)
         image_path = str(new_path)
