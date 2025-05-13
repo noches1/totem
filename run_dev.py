@@ -7,4 +7,13 @@ if __name__ == "__main__":
         picture.print_help()
 
     picture.run()
-    time.sleep(10)
+
+    while True:
+        command = input()
+        if not command:
+            break
+        if picture.thread is not None:
+            picture.thread.stop()
+            picture.thread.join()
+        picture.name = command
+        picture.run()
