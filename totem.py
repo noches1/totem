@@ -1,10 +1,16 @@
 #!/usr/bin/python3
 
 import dbus
+import threading
 
 from advertisement import Advertisement
 from service import Application, Service, Characteristic
 from picture import Picture
+import os
+from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
+import subprocess
+
 
 GATT_CHRC_IFACE = "org.bluez.GattCharacteristic1"
 DIR = "/home/totem/totem"
@@ -15,21 +21,6 @@ class TotemAdvertisement(Advertisement):
         Advertisement.__init__(self, index, "peripheral")
         self.add_local_name("Totem")
         self.include_tx_power = True
-
-
-class TotemService(Service):
-    TOTEM_SVC_UUID = "00000001-dead-dead-dead-3e5b444bc3c1"
-
-    def __init__(self, index):
-        self.value = "default"
-
-        Service.__init__(self, index, self.TOTEM_SVC_UUID, True)
-        self.add_characteristic(Command(self))
-        self.add_characteristic(Brightness(self))
-
-        self.totem = Picture()
-        self.totem.process()
-        self.totem.run()
 
 
 class Command(Characteristic):
@@ -86,14 +77,80 @@ class Brightness(Characteristic):
             )
 
 
+class TotemService(Service):
+    TOTEM_SVC_UUID = "00000001-dead-dead-dead-3e5b444bc3c1"
+
+    def __init__(self, index):
+        self.value = "default"
+
+        Service.__init__(self, index, self.TOTEM_SVC_UUID, True)
+        self.add_characteristic(Command(self))
+        self.add_characteristic(Brightness(self))
+        self.totem = Picture()
+        self.totem.process()
+        self.totem.run()
+
+    def run(self):
+        self.totem.run()
+
+
 app = Application()
-app.add_service(TotemService(0))
+totem_service = TotemService(0)
+app.add_service(totem_service)
 app.register()
 
 adv = TotemAdvertisement(0)
 adv.register()
 
+
+def start_flask_app():
+    flask_app = Flask(__name__, static_folder="./web/client/dist", static_url_path="")
+    CORS(flask_app)
+
+    def run_redis_cli(*args):
+        try:
+            proc = subprocess.run(
+                ["redis-cli", *args], capture_output=True, text=True, check=True
+            )
+            return proc.stdout.strip()
+        except:
+            return None
+
+    @flask_app.route("/api/hello")
+    def hello():
+        return "hello"
+
+    @flask_app.route("/api/command", methods=["POST"])
+    def command():
+        data = request.get_json(force=True)
+        if "command" not in data:
+            return jsonify({"error": "No command provided"}), 400
+        totem_service.totem.run_command(data["command"])
+        return jsonify({"command": data["command"]})
+
+    @flask_app.route("/api/command", methods=["GET"])
+    def current_command():
+        return jsonify({"command": run_redis_cli("GET", "command")})
+
+    @flask_app.route("/", defaults={"path": ""})
+    @flask_app.route("/<path:path>")
+    def serve(path):
+        """
+        Serve any file out of dist/ if it exists,
+        otherwise fall back to index.html (for SPA routing).
+        """
+        if path and os.path.exists(os.path.join(flask_app.static_folder, path)):
+            return send_from_directory(flask_app.static_folder, path)
+        # either “/” or missing file → serve index.html
+        return send_from_directory(flask_app.static_folder, "index.html")
+
+    flask_app.run("0.0.0.0", port=80, debug=False)
+
+
+thread = threading.Thread(target=start_flask_app)
+
 try:
+    thread.start()
     app.run()
 except KeyboardInterrupt:
     app.quit()

@@ -45,6 +45,6 @@ In the server directory:
 `python app.py`
 
 In the client directory:
-Go into `http/client` and run `pnpm install`
+Go into `web/client` and run `pnpm install`
 `pnpm dev` to develop with hot reloading
 or `pnpm vite build --watch` and visit localhost
