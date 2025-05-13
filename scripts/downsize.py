@@ -1,13 +1,20 @@
 import glob
 import os
 
-from PIL import Image
+from PIL import Image, ImageSequence
 
 SUPPORTED_EXTENSIONS = [".gif", ".jpg", ".jpeg", ".png"]
 
 TOTEM_LED_SIZE = (64, 64)
 base_dir = os.path.dirname(os.path.dirname(__file__))
 pattern = os.path.join(base_dir, "images", "**", "*.*")
+
+
+def thumbnails(frames):
+    for frame in frames:
+        thumbnail = frame.copy()
+        thumbnail.thumbnail(TOTEM_LED_SIZE)
+        yield thumbnail
 
 
 def downsize():
@@ -17,19 +24,18 @@ def downsize():
             if not image_path.endswith(ext):
                 continue
 
-        with Image.open(image_path) as img:
-            img = img.resize(TOTEM_LED_SIZE)
-            print(f"Saving {image_path}")
-            img.save(image_path)
-        # if image_path.endswith(".png"):
-        #     with open(image_path, "rb") as f:
-        #         image = Image.open(f)
-        #         image = image.resize(TOTEM_LED_SIZE, Image.ANTIALIAS)
-        #         image.save(image_path, format="PNG", optimize=True)
-
-
-# def downsize_all_images():
-#     image = Image.open()
+        if image_path.endswith(".gif"):
+            with Image.open(image_path) as img:
+                frames = ImageSequence.Iterator(img)
+                frames = thumbnails(frames)
+                om = next(frames)
+                om.info = img.info
+                om.save(image_path, save_all=True, append_images=list(frames))
+        else:
+            with Image.open(image_path) as img:
+                img = img.resize(TOTEM_LED_SIZE)
+                print(f"Saving {image_path}")
+                img.save(image_path)
 
 
 downsize()
