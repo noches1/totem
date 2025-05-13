@@ -1,10 +1,11 @@
 import * as React from "react";
 import { Button } from "./components/ui/button";
+import { Input } from "./components/ui/input";
 
 const isDev = import.meta.env.MODE === "development";
 const baseUrl = isDev ? "http://localhost" : "http://totem.local";
 
-type CommandName = "chibis" | "pokerscope" | "anime";
+type CommandName = "chibis" | "pokerscope" | "anime" | "affirmations";
 const changeCommand = async (command: CommandName) => {
   await fetch(baseUrl + "/api/command", {
     method: "POST",
@@ -39,6 +40,13 @@ function App() {
     };
     f();
   }, []);
+  const [input, setInput] = React.useState("");
+  const handleCustomCommand = React.useCallback(() => {
+    if (input !== "") {
+      changeCommand(input as CommandName);
+      setInput('');
+    }
+  }, [input]);
   return (
     <div className="flex flex-col gap-2">
       <div className="p-4 border-b">
@@ -56,6 +64,12 @@ function App() {
             Commands
           </h4>
           <div className="flex flex-col gap-2">
+            <p className="font-medium tracking-tight scroll-m-20">Custom command</p>
+            <Input value={input} onChange={(e) => setInput(e.target.value)} />
+            <Button className="mb-8" onClick={handleCustomCommand}>Go</Button>
+            <Button onClick={() => changeCommand("affirmations")}>
+              Affirmations
+            </Button>
             <Button onClick={() => changeCommand("pokerscope")}>
               Pokerscope
             </Button>
