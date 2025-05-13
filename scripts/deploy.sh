@@ -7,7 +7,7 @@ fi
 echo "Connected!"
 
 echo "Building client..."
-pnpm --filter client build
+# pnpm --filter client build
 echo "Client built!"
 
 echo "Zipping archive..."
