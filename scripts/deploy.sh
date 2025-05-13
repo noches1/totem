@@ -7,12 +7,12 @@ fi
 echo "Connected!"
 
 echo "Building client..."
-# pnpm --filter client build
+pnpm --filter client build
 echo "Client built!"
 
 echo "Zipping archive..."
-stashName=`git stash create`
-git archive --format=zip -o totem.zip ${uploadStash:-HEAD}
+stashName=$(git stash create)
+git archive --format=zip -o totem.zip ${stashName:-HEAD}
 echo "Created zip archive"
 
 echo "Uploading zip archive..."
@@ -23,5 +23,5 @@ ssh -i ./scripts/deploy_key totem@totem.local "sudo rm -rf totem && unzip totem.
 echo "Extracted archive successful"
 
 echo "Restarting totem service..."
-ssh -i ./scripts/deploy_key totem@totem.local "sudo systemctl restart totem.service"
+ssh -i ./scripts/deploy_key totem@totem.local "sudo systemctl restart totem.service; sudo systemctl restart totem-http.service"
 echo "Successfully deployed totem service"
