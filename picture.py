@@ -306,8 +306,6 @@ class Picture(Matrix):
             self.thread.start()
         elif file.split(".")[-1] == "png":
             image = Image.open(f"{file}")
-            # Resize every time
-            image = image.resize(TOTEM_LED_SIZE)
             image = self.double(image)
             self.matrix.SetImage(image.convert("RGB"))
         elif file.split(".")[-1] == "gif":
@@ -317,8 +315,6 @@ class Picture(Matrix):
             for frame_index in range(0, num_frames):
                 gif.seek(frame_index)
                 frame = gif.copy()
-                # Resize every time
-                frame = frame.resize(TOTEM_LED_SIZE, Image.LANCZOS)
                 frame = self.double(frame)
                 frame.thumbnail((self.matrix.width, self.matrix.height), Image.LANCZOS)
                 if frame_index >= len(self.canvases):
@@ -403,8 +399,6 @@ class Picture(Matrix):
         while True:
             img_name = imgs_to_cycle[img_idx]
             image = Image.open(os.path.join(full_dirname, img_name))
-            # Resize every time
-            image = image.resize(TOTEM_LED_SIZE)
             image = self.double(image)
             self.matrix.SetImage(image.convert("RGB"))
 
@@ -442,8 +436,6 @@ class Picture(Matrix):
             for frame_index in range(0, num_frames):
                 gif.seek(frame_index)
                 frame = gif.copy()
-                # Resize every time
-                frame = frame.resize(TOTEM_LED_SIZE, Image.LANCZOS)
                 frame = self.double(frame)
                 frame.thumbnail((self.matrix.width, self.matrix.height), Image.LANCZOS)
                 if frame_index >= len(self.canvases):
@@ -465,8 +457,6 @@ class Picture(Matrix):
 
         while True:
             image = Image.open(file)
-            # Resize every time
-            image = image.resize(TOTEM_LED_SIZE)
             image = self.double(image)
             self.matrix.SetImage(image.convert("RGB"))
             time.sleep(5)
