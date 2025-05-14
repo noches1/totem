@@ -438,6 +438,8 @@ class Picture(Matrix):
             gif = Image.open(f"{full_dirname}/{gifs_to_cycle[img_idx]}")
             print(img_idx, gifs_to_cycle[img_idx])
             num_frames = gif.n_frames
+            duration = gif.info['duration'] * num_frames
+            print('duration:', duration)
             frames = []
             for frame_index in range(0, num_frames):
                 gif.seek(frame_index)
@@ -449,7 +451,7 @@ class Picture(Matrix):
                 self.canvases[frame_index].SetImage(frame.convert("RGB"))
                 frames.append(self.canvases[frame_index])
             gif.close()
-            self.gif_n(frames, num_frames, iters, framerate)
+            self.gif_n(frames, num_frames, iters, duration)
             img_idx = (img_idx + 1) % len(gifs_to_cycle)
             if self.thread.stopped():
                 break
