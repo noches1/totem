@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from canvas import render_canvas
 from dev import IS_DEV
 from matrix import Matrix
 import time
@@ -254,6 +255,11 @@ class Picture(Matrix):
         elif lowercase_name == "pokerscope":
             print("Special command: pokerscope")
             self.thread = StoppableThread(target=self.pokerscope)
+            self.thread.start()
+            return
+        elif lowercase_name == "canvas":
+            print("Special command: canvas")
+            self.thread = StoppableThread(target=self.canvas_)
             self.thread.start()
             return
         elif lowercase_name == "howto":
@@ -634,6 +640,14 @@ class Picture(Matrix):
             pokerscope.tick(self.canvas)
             time.sleep(0.015)
             self.canvas = self.matrix.SwapOnVSync(self.canvas)
+            if self.thread.stopped():
+                break
+
+    def canvas_(self):
+        print("Inside self.canvas_")
+        while True:
+            render_canvas(self.matrix)
+            time.sleep(0.015)
             if self.thread.stopped():
                 break
 

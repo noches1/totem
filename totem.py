@@ -3,6 +3,7 @@
 import dbus
 import threading
 
+from canvas import art_canvas
 from pathlib import Path
 from advertisement import Advertisement
 from service import Application, Service, Characteristic
@@ -122,6 +123,15 @@ def start_flask_app():
             return proc.stdout.strip()
         except:
             return None
+
+    @flask_app.route("/api/canvas", methods=["POST"])
+    def canvas():
+        blob = request.get_data()
+        if len(blob) != 64 * 64:
+            return jsonify({"error": "expected exactly 4096 bytes"}), 400
+        grid = [list(blob[row * 64 : (row + 1) * 64]) for row in range(64)]
+        art_canvas.update(grid)
+        return jsonify({"status": "ok"})
 
     @flask_app.route("/api/hello")
     def hello():
