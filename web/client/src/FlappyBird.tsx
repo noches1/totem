@@ -50,8 +50,8 @@ const INITIAL_GAME_STATE: GameState = {
   ],
 };
 
-const GAP_HEIGHT_EASY = 32;
-const GAP_HEIGHT_HARD = 24;
+const GAP_HEIGHT_EASY = 48;
+const GAP_HEIGHT_HARD = 32;
 
 // prettier-ignore
 const birdPixelArray = [
@@ -177,7 +177,8 @@ const getNextFrame = (gameState: GameState): GameState => {
   } else {
     difficulty = 3;
   }
-  const hasDoublePipes = difficulty >= 0;
+  const hasDoublePipes = difficulty >= 1;
+  const gapSize = difficulty >= 2 ? GAP_HEIGHT_HARD : GAP_HEIGHT_EASY;
 
   const dt = 0.05; // change to take last frame's time vs. this frame's time
   let newGameState = {
@@ -204,13 +205,10 @@ const getNextFrame = (gameState: GameState): GameState => {
     }
     if (hasDoublePipes) {
       const targetY = Math.floor(Math.random() * MATRIX_SIZE);
-      const topPipeHeight = Math.max(
-        0,
-        targetY - Math.floor(GAP_HEIGHT_EASY / 2),
-      );
+      const topPipeHeight = Math.max(0, targetY - Math.floor(gapSize / 2));
       const bottomPipeHeight = Math.min(
         MATRIX_SIZE - 1,
-        MATRIX_SIZE - (targetY + Math.floor(GAP_HEIGHT_EASY / 2)),
+        MATRIX_SIZE - (targetY + Math.floor(gapSize / 2)),
       );
       if (topPipeHeight > 0) {
         newGameState.pipes.push({
