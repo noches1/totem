@@ -50,12 +50,12 @@ class Matrix(object):
         if self.args.led_gpio_mapping != None:
           options.hardware_mapping = self.args.led_gpio_mapping
         if IS_DEV:
-            options.rows = 64
-            options.cols = 128
+            options.rows = 128
+            options.cols = 64
         else:
             options.rows = 32
             options.cols = 64
-        options.chain_length = 4
+        options.chain_length = 1 if IS_DEV else 4
         options.parallel = self.args.led_parallel
         options.row_address_type = self.args.led_row_addr_type
 
