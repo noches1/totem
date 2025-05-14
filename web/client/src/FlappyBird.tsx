@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { sendCanvas } from "./api";
+import { useInterval } from "./useInterval";
 
 export type Pixel = [number, number, number];
 type Matrix = Pixel[][];
@@ -202,7 +203,6 @@ const getNextFrame = (gameState: GameState): GameState => {
       }
     }
   });
-  // sendCanvas(getGameStateMatrix(newGameState));
   return newGameState;
 };
 
@@ -226,6 +226,33 @@ export const FlappyBird = () => {
   );
 };
 
+/**
+ * @param imgDataData  The ImageData.data Uint8ClampedArray (length = w*h*4)
+ * @returns Uint8Array length = w*h, each byte in RGB332 format
+ */
+function encodeRgb332(imgDataData: Uint8ClampedArray): Uint8Array {
+  const nPixels = imgDataData.length / 4;
+  const out = new Uint8Array(nPixels);
+
+  for (let i = 0; i < nPixels; i++) {
+    const base = i * 4;
+    const r8 = imgDataData[base + 0];
+    const g8 = imgDataData[base + 1];
+    const b8 = imgDataData[base + 2];
+    // ignore alpha
+
+    // quantize down to 3,3,2 bits:
+    const r3 = r8 >> 5; // top 3 bits of red
+    const g3 = g8 >> 5; // top 3 bits of green
+    const b2 = b8 >> 6; // top 2 bits of blue
+
+    // pack into one byte: RRR GGG BB
+    out[i] = (r3 << 5) | (g3 << 2) | b2;
+  }
+
+  return out;
+}
+
 export const Matrix = ({ matrix }: { matrix: Matrix }) => {
   const W = 64;
   const H = 64;
@@ -234,23 +261,41 @@ export const Matrix = ({ matrix }: { matrix: Matrix }) => {
     if (canvasRef.current) {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
-    if (ctx != null) {
-      const imgData = ctx.createImageData(W, H);
-      const data = imgData.data;
-      for (let y = 0; y < H; y++) {
-        for (let x = 0; x < W; x++) {
-          const i = (y * W + x) * 4;
-          const [r, g, b] = matrix[y][x];
-          data[i + 0] = r;
-          data[i + 1] = g;
-          data[i + 2] = b;
-          data[i + 3] = 255;
+      if (ctx != null) {
+        const imgData = ctx.createImageData(W, H);
+        const data = imgData.data;
+        for (let y = 0; y < H; y++) {
+          for (let x = 0; x < W; x++) {
+            const i = (y * W + x) * 4;
+            const [r, g, b] = matrix[y][x];
+            data[i + 0] = r;
+            data[i + 1] = g;
+            data[i + 2] = b;
+            data[i + 3] = 255;
+          }
         }
+        ctx.putImageData(imgData, 0, 0);
       }
-      ctx.putImageData(imgData, 0, 0);
     }
-  }
-  }, [matrix])
+  }, [matrix]);
+  useInterval(
+    () => {
+      if (canvasRef.current == null) {
+        return;
+      }
+
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
+      if (ctx == null) {
+        return;
+      }
+      const imgData = ctx.getImageData(0, 0, W, H);
+      const flat = imgData.data;
+      const rgb332 = encodeRgb332(flat);
+      sendCanvas(rgb332);
+    },
+    Math.round(1 / 20),
+  );
   return (
     <canvas
       width={64}
@@ -259,16 +304,6 @@ export const Matrix = ({ matrix }: { matrix: Matrix }) => {
       ref={canvasRef}
       style={{ imageRendering: "pixelated" }}
     >
-      {matrix.map((row, i) =>
-        row.map((cell, j) => (
-          <div
-            key={`${i}-${j}`}
-            style={{
-              backgroundColor: `rgba(${cell[0]}, ${cell[1]}, ${cell[2]}, 1)`,
-            }}
-          />
-        )),
-      )}
     </canvas>
   );
 };
