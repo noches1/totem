@@ -43,21 +43,21 @@ const INITIAL_GAME_STATE: GameState = {
 
 // prettier-ignore
 const birdPixelArray = [
-  [null, null, null, null, null, null, "#000000", "#000000", "#000000", "#333333", null, null, null, null, null, null],
-  [null, null, null, null, null, "#000000", "#c2ddd0", "#000000", "#c2ddd0", "#3c4c36", "#3c4c36", null, null, null, null, null],
-  [null, null, null, "#5c5c5c", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#707070", null, null, null, null],
-  ["#000000", null, "#c2cec0", "#c2ddd0", "#c2ddd0", "#000000", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#5c6c54", null, "#3c4c36", "#3c4c36"],
-  [null, "#c2ddd0", "#c2ddd0", "#000000", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#5c6c54", "#000000", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#8c9c84", "#c2cec0", "#3c4c36"],
-  ["#3c4c36", "#c2ddd0", "#c2ddd0", "#5c6c54", "#3c4c36", "#5c6c54", "#c2ddd0", "#c2ddd0", "#ff9080", null, "#735745", "#000000", "#ff9080", "#c2ddd0", "#c2ddd0", "#3c4c36"],
-  ["#3c4c36", "#3c4c36", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#ff9080", null, "#735745", "#ffa020", "#000000", "#c2ddd0", "#3c4c36", "#3c4c36"],
-  [null, "#000000", "#000000", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#5c6c54", null, null],
-  [null, "#3c4c36", "#000000", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#ffffff", "#ffffff", "#c2ddd0", "#707070", null, null],
-  ["#000000", "#c2cec0", "#3c4c36", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#ffffff", "#ffffff", "#ffffff", "#ffffff", "#c2cec0", null, null],
-  ["#000000", "#c2ddd0", "#000000", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#ffffff", "#ffffff", "#ffffff", "#c2cec0", "#707070", null, null],
-  [null, "#c2ddd0", "#3c4c36", "#000000", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2cec0", "#c2cec0", "#707070", null, null, null, null],
-  [null, null, "#c2ddd0", "#c2ddd0", "#000000", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2cec0", "#707070", null, null, null, null, null],
-  [null, null, "#c2cec0", "#3c4c36", "#000000", "#c2cec0", "#c2ddd0", "#c2ddd0", "#707070", "#707070", null, null, null, null, null, null],
-  [null, null, null, "#000000", "#000000", "#000000", "#000000", "#000000", "#000000", null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, "#FFFF00", "#FFFF00", "#FFFF00", null, null, null, null, null, null],
+  [null, null, null, null, null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null, null, null, null],
+  [null, null, null, null, null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#000000", "#FFFF00", "#FF9900", null, null, null],
+  [null, null, null, null, null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FF9900", "#FF9900", "#FF9900", null],
+  ["#FFFF00", null, "#FFFF00", "#FFFF00", "#FFFF00", null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FF9900", "#FF9900", "#FF9900", "#FF9900"],
+  [null, "#FFFF00", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FF9900", "#FF9900", null, null],
+  [null, null, "#FFFF00", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null, null, null],
+  [null, "#FFFF00", "#FFFF00", "#FFFF00", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null, null],
+  [null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#000000", "#000000", "#000000", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null],
+  [null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null],
+  [null, null, null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null, null],
+  [null, null, null, null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null, null, null],
+  [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
   [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
 ];
 
