@@ -11,7 +11,7 @@ type GameState = {
   };
   pipes: {
     x: number;
-    y: number;
+    position: "top" | "bottom";
   }[];
 };
 
@@ -28,15 +28,15 @@ const INITIAL_GAME_STATE: GameState = {
   pipes: [
     {
       x: 20,
-      y: PIPE_TOP_Y,
+      position: "top",
     },
     {
       x: 40,
-      y: BOTTOM_PIPE_Y,
+      position: "bottom",
     },
     {
       x: 60,
-      y: PIPE_TOP_Y,
+      position: "top",
     },
   ],
 };
@@ -52,8 +52,8 @@ const birdPixelArray = [
   ["#FFFF00", null, "#FFFF00", "#FFFF00", "#FFFF00", null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FF9900", "#FF9900", "#FF9900", "#FF9900"],
   [null, "#FFFF00", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FF9900", "#FF9900", null, null],
   [null, null, "#FFFF00", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null, null, null],
-  [null, "#FFFF00", "#FFFF00", "#FFFF00", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null, null],
-  [null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#000000", "#000000", "#000000", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null],
+  ["#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null, null],
+  [null, "FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#000000", "#000000", "#000000", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null],
   [null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null],
   [null, null, null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null, null],
   [null, null, null, null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null, null, null],
@@ -100,13 +100,35 @@ const getEmptyMatrix = (): Matrix => {
     .map(() => Array(size).fill([0, 0, 0]));
 };
 
+const PIPE_COLOUR = [0, 255, 0] as Pixel
+
 const getGameStateMatrix = (gameState: GameState): Matrix => {
   const matrix = getEmptyMatrix();
 
   // Draw pipes
   gameState.pipes.forEach((pipe) => {
-    for (let y = 0; y < PIPE_LENGTH; y++) {
-      matrix[pipe.y + y][pipe.x] = [255, 255, 255];
+    for (let i = 0; i < PIPE_LENGTH; i++) {
+      let y;
+      if (pipe.position === "top") {
+        y = i;
+      } else {
+        y = MATRIX_SIZE - i - 1;
+      }
+      matrix[y][pipe.x] = PIPE_COLOUR;
+      if (pipe.x + 1 < MATRIX_SIZE) {
+        matrix[y][pipe.x + 1] = PIPE_COLOUR;
+      }
+      if (pipe.x + 2 < MATRIX_SIZE) {
+        matrix[y][pipe.x + 2] = PIPE_COLOUR;
+      }
+      if (i > PIPE_LENGTH * 3 / 4) {
+        if (pipe.x + 3 < MATRIX_SIZE) {
+          matrix[y][pipe.x + 3] = PIPE_COLOUR;
+        }
+        if (pipe.x - 1 >= 0) {
+          matrix[y][pipe.x - 1] = PIPE_COLOUR;
+        }
+      }
     }
   });
 
@@ -131,14 +153,14 @@ const getNextFrame = (gameState: GameState): GameState => {
     },
     pipes: gameState.pipes.map((pipe) => ({
       x: pipe.x - 1,
-      y: pipe.y,
+      position: pipe.position,
     })),
   };
   if (newGameState.pipes[0].x < 0) {
     newGameState.pipes.shift();
     newGameState.pipes.push({
       x: 63,
-      y: Math.random() < 0.5 ? PIPE_TOP_Y : BOTTOM_PIPE_Y,
+      position: Math.random() < 0.5 ? "top" : "bottom",
     });
   }
   if (newGameState.bird.y >= 64) {
@@ -198,7 +220,7 @@ export const Matrix = ({ matrix }: { matrix: Matrix }) => {
     <canvas
       width={64}
       height={64}
-      className="aspect-square border"
+      className="aspect-square border-1 border-white"
       ref={canvasRef}
       style={{ imageRendering: "pixelated" }}
     >
@@ -210,7 +232,7 @@ export const Matrix = ({ matrix }: { matrix: Matrix }) => {
               backgroundColor: `rgba(${cell[0]}, ${cell[1]}, ${cell[2]}, 1)`,
             }}
           />
-        )),
+        ))
       )}
     </canvas>
   );
