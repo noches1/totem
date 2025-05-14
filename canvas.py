@@ -65,4 +65,4 @@ def render_canvas(matrix):
     for j, row in enumerate(art_canvas.grid):
         for i, cell in enumerate(row):
             img.putpixel((i, j), rgb332_to_rgb(cell))
-    matrix.SetImage(img)
+    matrix.SetImage(double(img))
