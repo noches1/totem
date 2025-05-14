@@ -4,10 +4,14 @@ import { sendCanvas } from "./api";
 export type Pixel = [number, number, number];
 type Matrix = Pixel[][];
 
+const GRAVITY = 300;
+const MAX_SPEED = 100;
+
 type GameState = {
   bird: {
     x: number;
     y: number;
+    vy: number;
   };
   pipes: {
     x: number;
@@ -24,6 +28,7 @@ const INITIAL_GAME_STATE: GameState = {
   bird: {
     x: 10,
     y: 32,
+    vy: 0,
   },
   pipes: [
     {
@@ -86,7 +91,7 @@ const drawBird = (matrix: Matrix, bird: { x: number; y: number }) => {
           const r = parseInt(color.slice(1, 3), 16);
           const g = parseInt(color.slice(3, 5), 16);
           const b = parseInt(color.slice(5, 7), 16);
-          matrix[matrixY][matrixX] = [r, g, b];
+          matrix[Math.floor(matrixY)][Math.floor(matrixX)] = [r, g, b];
         }
       }
     }
@@ -100,7 +105,7 @@ const getEmptyMatrix = (): Matrix => {
     .map(() => Array(size).fill([0, 0, 0]));
 };
 
-const PIPE_COLOUR = [0, 255, 0] as Pixel
+const PIPE_COLOUR = [0, 255, 0] as Pixel;
 
 const getGameStateMatrix = (gameState: GameState): Matrix => {
   const matrix = getEmptyMatrix();
@@ -121,7 +126,7 @@ const getGameStateMatrix = (gameState: GameState): Matrix => {
       if (pipe.x + 2 < MATRIX_SIZE) {
         matrix[y][pipe.x + 2] = PIPE_COLOUR;
       }
-      if (i > PIPE_LENGTH * 3 / 4) {
+      if (i > (PIPE_LENGTH * 3) / 4) {
         if (pipe.x + 3 < MATRIX_SIZE) {
           matrix[y][pipe.x + 3] = PIPE_COLOUR;
         }
@@ -140,22 +145,25 @@ const getGameStateMatrix = (gameState: GameState): Matrix => {
 
 const birdJump = (gameState: GameState): GameState => {
   const newGameState = { ...gameState };
-  newGameState.bird.y -= 3;
+  newGameState.bird.vy = -100;
   return newGameState;
 };
 
 const getNextFrame = (gameState: GameState): GameState => {
+  const dt = 0.05; // change to take last frame's time vs. this frame's time
   const newGameState = {
     ...gameState,
     bird: {
       x: gameState.bird.x,
-      y: gameState.bird.y + 1,
+      y: gameState.bird.y,
+      vy: Math.min(Math.round(gameState.bird.vy + GRAVITY * dt), MAX_SPEED),
     },
     pipes: gameState.pipes.map((pipe) => ({
       x: pipe.x - 1,
       position: pipe.position,
     })),
   };
+  newGameState.bird.y += newGameState.bird.vy * dt;
   if (newGameState.pipes[0].x < 0) {
     newGameState.pipes.shift();
     newGameState.pipes.push({
@@ -165,11 +173,13 @@ const getNextFrame = (gameState: GameState): GameState => {
   }
   if (newGameState.bird.y >= 64) {
     newGameState.bird.y = 63;
+    newGameState.bird.vy = 0;
   }
   if (newGameState.bird.y < 0) {
     newGameState.bird.y = 0;
+    newGameState.bird.vy = 0;
   }
-  sendCanvas(getGameStateMatrix(newGameState));
+  // sendCanvas(getGameStateMatrix(newGameState));
   return newGameState;
 };
 
@@ -232,7 +242,7 @@ export const Matrix = ({ matrix }: { matrix: Matrix }) => {
               backgroundColor: `rgba(${cell[0]}, ${cell[1]}, ${cell[2]}, 1)`,
             }}
           />
-        ))
+        )),
       )}
     </canvas>
   );
