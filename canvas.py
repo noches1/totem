@@ -56,7 +56,7 @@ def double(image):
 last_rendered = 0
 
 
-def render_canvas(matrix):
+def render_canvas(canvases, matrix):
     global last_rendered
     if last_rendered >= art_canvas.last_updated_at:
         return
@@ -65,4 +65,5 @@ def render_canvas(matrix):
     for j, row in enumerate(art_canvas.grid):
         for i, cell in enumerate(row):
             img.putpixel((i, j), rgb332_to_rgb(cell))
-    matrix.SetImage(double(img))
+    canvases[0].SetImage(double(img))
+    matrix.SwapOnVSync(canvases[0])
