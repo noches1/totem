@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
+import { FlappyBird } from "./FlappyBird";
 
 const isDev = import.meta.env.MODE === "development";
 const baseUrl = isDev ? "http://localhost" : "http://totem.local";
@@ -147,6 +148,7 @@ function App() {
               {command.name}
             </Button>
           ))}
+          <FlappyBird />
         </div>
       </div>
     </div>
