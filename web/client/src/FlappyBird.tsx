@@ -348,17 +348,27 @@ export const Matrix = ({
           }
         }
         ctx.putImageData(imgData, 0, 0);
-        ctx.fillStyle = "white";
         if (state === "initial") {
+          // Draw a background rectangle behind the text
+          ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Semi-transparent black background
+          ctx.fillRect(0, 24, 64, 16); // x, y, width, height
+
           ctx.font = "11px sans-serif";
+          ctx.fillStyle = "white";
           ctx.fillText("click to start", 2, 36);
         }
         if (state === "playing" || state === "dead") {
           ctx.font = "16px sans-serif";
+          ctx.fillStyle = "white"; // Reset fill style for text
           ctx.fillText(score.toString(), 4, 16);
         }
         if (state === "dead") {
+          // Draw a background rectangle behind the text
+          ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Semi-transparent black background
+          ctx.fillRect(0, 24, 64, 16); // x, y, width, height
+
           ctx.font = "12px sans-serif";
+          ctx.fillStyle = "white"; // Reset fill style for text
           ctx.fillText("game over", 4, 36);
         }
       }
