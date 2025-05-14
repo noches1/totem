@@ -101,21 +101,6 @@ const Commands = () => {
     setSingleInput2("");
   }, [singleInput1, singleInput2]);
 
-  const handleCanvas = React.useCallback(() => {
-    const flat = new Uint8Array(64 * 64);
-    for (let y = 0; y < 64; y++) {
-      for (let x = 0; x < 64; x++) {
-        flat[y * 64 + x] = Math.floor(Math.random() * 256);
-      }
-    }
-    fetch(baseUrl + "/api/canvas", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/octet-stream",
-      },
-      body: flat,
-    });
-  }, []);
   return (
     <div>
       <div className="flex flex-col gap-2">
@@ -182,7 +167,6 @@ const Commands = () => {
           <Button onClick={() => changeCommand("pokerscope")}>
             Pokerscope
           </Button>
-          <Button onClick={handleCanvas}>Canvas</Button>
           {allCommands.map((command) => (
             <Button
               key={command.name}
