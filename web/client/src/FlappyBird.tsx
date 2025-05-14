@@ -32,7 +32,7 @@ const INITIAL_GAME_STATE: GameState = {
   },
   pipes: [
     {
-      x: 35,
+      x: 30,
       position: "bottom",
     },
     {
@@ -141,14 +141,14 @@ const getGameStateMatrix = (gameState: GameState): Matrix => {
 
 const birdJump = (gameState: GameState): GameState => {
   if (gameState.state === "dead") {
-    return {... gameState, state: "playing" as const };
+    return { ...gameState, state: "playing" as const };
   }
   const newGameState = { ...gameState, state: "playing" as const };
   newGameState.bird.vy = -100;
   return newGameState;
 };
 
-const COLLISION_DISTANCE = 4
+const COLLISION_DISTANCE = 4;
 const getNextFrame = (gameState: GameState): GameState => {
   if (gameState.state === "dead") {
     return gameState;
@@ -184,19 +184,25 @@ const getNextFrame = (gameState: GameState): GameState => {
   }
   // collision detection, bird within 2px of pipe
   newGameState.pipes.forEach((pipe) => {
-    if (newGameState.bird.x >= pipe.x - COLLISION_DISTANCE && newGameState.bird.x <= pipe.x + 3 + COLLISION_DISTANCE) {
+    if (
+      newGameState.bird.x >= pipe.x - COLLISION_DISTANCE &&
+      newGameState.bird.x <= pipe.x + 3 + COLLISION_DISTANCE
+    ) {
       if (pipe.position === "top") {
         if (newGameState.bird.y <= PIPE_LENGTH + COLLISION_DISTANCE) {
-          newGameState = INITIAL_GAME_STATE
+          newGameState = INITIAL_GAME_STATE;
         }
       } else {
-        if (newGameState.bird.y >= MATRIX_SIZE - PIPE_LENGTH - COLLISION_DISTANCE) {
-          newGameState = INITIAL_GAME_STATE
+        if (
+          newGameState.bird.y >=
+          MATRIX_SIZE - PIPE_LENGTH - COLLISION_DISTANCE
+        ) {
+          newGameState = INITIAL_GAME_STATE;
         }
       }
     }
   });
-  sendCanvas(getGameStateMatrix(newGameState));
+  // sendCanvas(getGameStateMatrix(newGameState));
   return newGameState;
 };
 
@@ -206,7 +212,7 @@ export const FlappyBird = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setGameState((s) => getNextFrame(s));
-    }, 100);
+    }, 50);
     return () => clearInterval(interval);
   }, []);
   return (
