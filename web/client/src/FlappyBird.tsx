@@ -144,13 +144,19 @@ const getGameStateMatrix = (gameState: GameState): Matrix => {
 };
 
 const birdJump = (gameState: GameState): GameState => {
+  if (gameState.state === "dead") {
+    return {... gameState, state: "playing" as const };
+  }
   const newGameState = { ...gameState, state: "playing" as const };
   newGameState.bird.vy = -100;
   return newGameState;
 };
 
-const COLLISION_DISTANCE = 6
+const COLLISION_DISTANCE = 4
 const getNextFrame = (gameState: GameState): GameState => {
+  if (gameState.state === "dead") {
+    return gameState;
+  }
   const dt = 0.05; // change to take last frame's time vs. this frame's time
   let newGameState = {
     ...gameState,
