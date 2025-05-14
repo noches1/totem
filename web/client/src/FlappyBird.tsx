@@ -38,12 +38,12 @@ const INITIAL_GAME_STATE: GameState = {
   },
   pipes: [
     {
-      x: 30,
+      x: MATRIX_SIZE + 32,
       height: 32,
       position: "top",
     },
     {
-      x: 60,
+      x: MATRIX_SIZE + 80,
       height: 32,
       position: "bottom",
     },
@@ -52,6 +52,8 @@ const INITIAL_GAME_STATE: GameState = {
 
 const GAP_HEIGHT_EASY = 48;
 const GAP_HEIGHT_HARD = 32;
+const PIPE_SPAWN_X_EASY = MATRIX_SIZE + 32;
+const PIPE_SPAWN_X_HARD = MATRIX_SIZE + 3;
 
 // prettier-ignore
 const birdPixelArray = [
@@ -93,7 +95,11 @@ const birdPixelArray2 = [
   [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
 ];
 
-const drawBird = (matrix: Matrix, bird: { x: number; y: number }, pixelArray: (string | null)[][]) => {
+const drawBird = (
+  matrix: Matrix,
+  bird: { x: number; y: number },
+  pixelArray: (string | null)[][],
+) => {
   // Calculate the top-left position to center the bird
   const startX = bird.x - 8;
   const startY = bird.y - 8;
@@ -203,6 +209,7 @@ const getNextFrame = (gameState: GameState): GameState => {
   }
   const hasDoublePipes = difficulty >= 1;
   const gapSize = difficulty >= 2 ? GAP_HEIGHT_HARD : GAP_HEIGHT_EASY;
+  const spawnX = difficulty >= 3 ? PIPE_SPAWN_X_HARD : PIPE_SPAWN_X_EASY;
 
   const dt = 0.05; // change to take last frame's time vs. this frame's time
   let newGameState = {
@@ -219,9 +226,11 @@ const getNextFrame = (gameState: GameState): GameState => {
     })),
   };
   newGameState.bird.y += newGameState.bird.vy * dt;
+
   const numPipesOffScreen = newGameState.pipes.filter(
-    (pipe) => pipe.x < 0,
+    (pipe) => pipe.x < -3,
   ).length;
+
   if (numPipesOffScreen > 0) {
     newGameState.score += 1;
     for (let i = 0; i < numPipesOffScreen; i++) {
@@ -236,21 +245,21 @@ const getNextFrame = (gameState: GameState): GameState => {
       );
       if (topPipeHeight > 0) {
         newGameState.pipes.push({
-          x: MATRIX_SIZE - 1,
+          x: spawnX,
           height: topPipeHeight,
           position: "top",
         });
       }
       if (bottomPipeHeight > 0) {
         newGameState.pipes.push({
-          x: MATRIX_SIZE - 1,
+          x: spawnX,
           height: bottomPipeHeight,
           position: "bottom",
         });
       }
     } else {
       newGameState.pipes.push({
-        x: MATRIX_SIZE - 1,
+        x: spawnX,
         height: Math.floor(MATRIX_SIZE / 2),
         position: Math.random() < 0.5 ? "top" : "bottom",
       });
