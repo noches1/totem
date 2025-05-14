@@ -306,7 +306,7 @@ export const Matrix = ({
       const rgb332 = encodeRgb332(flat);
       sendCanvas(rgb332);
     },
-    Math.round(1 / 20),
+    Math.round(1000 / 10),
   );
   return (
     <canvas
