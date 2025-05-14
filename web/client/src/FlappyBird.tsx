@@ -10,6 +10,7 @@ const MAX_SPEED = 100;
 
 type GameState = {
   state: "playing" | "dead";
+  score: number;
   bird: {
     x: number;
     y: number;
@@ -26,6 +27,7 @@ const PIPE_LENGTH = 24;
 
 const INITIAL_GAME_STATE: GameState = {
   state: "dead",
+  score: 0,
   bird: {
     x: 10,
     y: 32,
@@ -169,6 +171,7 @@ const getNextFrame = (gameState: GameState): GameState => {
   };
   newGameState.bird.y += newGameState.bird.vy * dt;
   if (newGameState.pipes[0].x < 0) {
+    newGameState.score += 1;
     newGameState.pipes.shift();
     newGameState.pipes.push({
       x: 63,
@@ -221,7 +224,7 @@ export const FlappyBird = () => {
       onClick={() => setGameState((s) => getNextFrame(birdJump(s)))}
     >
       <p className="text-2xl font-bold text-center mt-4">flappy bird</p>
-      <Matrix matrix={matrix} />
+      <Matrix matrix={matrix} score={gameState.score} />
     </div>
   );
 };
@@ -253,7 +256,13 @@ function encodeRgb332(imgDataData: Uint8ClampedArray): Uint8Array {
   return out;
 }
 
-export const Matrix = ({ matrix }: { matrix: Matrix }) => {
+export const Matrix = ({
+  score,
+  matrix,
+}: {
+  score: number;
+  matrix: Matrix;
+}) => {
   const W = 64;
   const H = 64;
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -275,9 +284,12 @@ export const Matrix = ({ matrix }: { matrix: Matrix }) => {
           }
         }
         ctx.putImageData(imgData, 0, 0);
+        ctx.font = "16px sans-serif";
+        ctx.fillStyle = "white";
+        ctx.fillText(score.toString(), 4, 16);
       }
     }
-  }, [matrix]);
+  }, [matrix, score]);
   useInterval(
     () => {
       if (canvasRef.current == null) {
@@ -303,7 +315,6 @@ export const Matrix = ({ matrix }: { matrix: Matrix }) => {
       className="aspect-square border-1 border-white"
       ref={canvasRef}
       style={{ imageRendering: "pixelated" }}
-    >
-    </canvas>
+    ></canvas>
   );
 };
