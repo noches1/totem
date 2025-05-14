@@ -65,7 +65,7 @@ class Matrix(object):
         options.led_rgb_sequence = self.args.led_rgb_sequence
         options.pixel_mapper_config = 'V-Mapper'
         options.panel_type = self.args.led_panel_type
-        options.limit_refresh_rate_hz = 60
+        options.limit_refresh_rate_hz = 160
 
         options.gpio_slowdown = 5
 

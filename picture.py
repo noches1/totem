@@ -157,6 +157,16 @@ class Picture(Matrix):
             "-p": "party",
             "-party": "party",
         }
+        paths_unsorted = {}
+        self.all_subdirs = []
+        for path, subdirs, files in os.walk(f"{DIR}/images"):
+            self.all_subdirs.extend(subdirs)
+            for name in files:
+                simple_name = name.split(".")[0].lower()
+                paths_unsorted[simple_name] = os.path.join(path, name)
+        # List all the pre-downloaded images/gifs
+        self.paths = {k: paths_unsorted[k] for k in sorted(paths_unsorted.keys())}
+
 
     def double(self, image):
         images = [image, image]
@@ -181,15 +191,6 @@ class Picture(Matrix):
         lowercase_name = self.name.lower().strip()
         print(f"lowercase version of input: {lowercase_name}")
 
-        paths_unsorted = {}
-        self.all_subdirs = []
-        for path, subdirs, files in os.walk(f"{DIR}/images"):
-            self.all_subdirs.extend(subdirs)
-            for name in files:
-                simple_name = name.split(".")[0].lower()
-                paths_unsorted[simple_name] = os.path.join(path, name)
-        # List all the pre-downloaded images/gifs
-        self.paths = {k: paths_unsorted[k] for k in sorted(paths_unsorted.keys())}
         all_file_names = list(self.paths.keys())
 
         print("All subdirs that you can choose to cycle through")
@@ -347,8 +348,9 @@ class Picture(Matrix):
         while True:
             if IS_DEV:
                 self.matrix.SwapOnVSync(frames[cur_frame])
+                time.sleep(durations[cur_frame] / 1000)
             else:
-                self.matrix.SwapOnVSync(frames[cur_frame], framerate_fraction=max(durations[cur_frame] // 16, 1))
+                self.matrix.SwapOnVSync(frames[cur_frame], framerate_fraction=max(durations[cur_frame] // 6.25, 1))
             if cur_frame == num_frames - 1:
                 cur_frame = 1
             else:
@@ -362,8 +364,9 @@ class Picture(Matrix):
         while i < iters:
             if IS_DEV:
                 self.matrix.SwapOnVSync(frames[cur_frame])
+                time.sleep(durations[cur_frame] / 1000)
             else:
-                self.matrix.SwapOnVSync(frames[cur_frame], framerate_fraction=max(durations[cur_frame] // 16, 1))
+                self.matrix.SwapOnVSync(frames[cur_frame], framerate_fraction=max(durations[cur_frame] // 6.25, 1))
             if cur_frame == num_frames - 1:
                 cur_frame = 1
                 i += 1

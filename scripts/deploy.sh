@@ -7,19 +7,27 @@ fi
 echo "Connected!"
 
 echo "Building client..."
-# pnpm --filter client build
+pnpm --no-update-notifier --filter client build
 echo "Client built!"
 
 echo "Zipping archive..."
-stashName=$(git stash create)
-git archive --format=zip -o totem.zip ${stashName:-HEAD}
+rm -f totem.zip
+if [ $1 == "fast" ]; then
+        zip -r totem.zip . -x "*.git*" -x "*.DS_Store*" -x "*.pnpm*" -x "*node_modules*" -x "images/*" -x "fonts/*"
+else
+        zip -r totem.zip . -x "*.git*" -x "*.DS_Store*" -x "*.pnpm*" -x "*node_modules*"
+fi
 echo "Created zip archive"
 
 echo "Uploading zip archive..."
 scp -i ./scripts/deploy_key totem.zip totem@totem.local:~
 
 echo "SSH into totem and extracting archive..."
-ssh -i ./scripts/deploy_key totem@totem.local "sudo rm -rf totem && unzip totem.zip -d totem"
+if [ $1 == "fast" ]; then
+        ssh -i ./scripts/deploy_key totem@totem.local "unzip -o totem.zip -d totem"
+else
+        ssh -i ./scripts/deploy_key totem@totem.local "sudo rm -rf totem && unzip totem.zip -d totem"
+fi
 echo "Extracted archive successful"
 
 echo "Restarting totem service..."
