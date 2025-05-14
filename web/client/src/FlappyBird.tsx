@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { sendCanvas } from "./api";
 
 export type Pixel = [number, number, number];
@@ -86,7 +86,7 @@ const drawBird = (matrix: Matrix, bird: { x: number; y: number }) => {
           const r = parseInt(color.slice(1, 3), 16);
           const g = parseInt(color.slice(3, 5), 16);
           const b = parseInt(color.slice(5, 7), 16);
-          matrix[matrixY][matrixX] = [r, g, b]
+          matrix[matrixY][matrixX] = [r, g, b];
         }
       }
     }
@@ -172,8 +172,36 @@ export const FlappyBird = () => {
 };
 
 export const Matrix = ({ matrix }: { matrix: Matrix }) => {
+  const W = 64;
+  const H = 64;
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  if (canvasRef.current) {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (ctx != null) {
+      const imgData = ctx.createImageData(W, H);
+      const data = imgData.data;
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          const i = (y * W + x) * 4;
+          const [r, g, b] = matrix[y][x];
+          data[i + 0] = r;
+          data[i + 1] = g;
+          data[i + 2] = b;
+          data[i + 3] = 255;
+        }
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+  }
   return (
-    <div className="grid grid-cols-64 grid-rows-64 aspect-square border-1 border-white">
+    <canvas
+      width={64}
+      height={64}
+      className="aspect-square border"
+      ref={canvasRef}
+      style={{ imageRendering: "pixelated" }}
+    >
       {matrix.map((row, i) =>
         row.map((cell, j) => (
           <div
@@ -184,6 +212,6 @@ export const Matrix = ({ matrix }: { matrix: Matrix }) => {
           />
         )),
       )}
-    </div>
+    </canvas>
   );
 };
