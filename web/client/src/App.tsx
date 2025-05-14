@@ -33,7 +33,7 @@ function App() {
       <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
         Totem
       </h3>
-      <div className="flex gap-2 mb-2">
+      <div className="flex gap-2 mb-2 w-full">
         <Tabs className="w-full" defaultValue="commands">
           <TabsList className="mx-auto">
             <TabsTrigger value="commands">Commands</TabsTrigger>
