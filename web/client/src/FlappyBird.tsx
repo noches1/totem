@@ -21,12 +21,12 @@ type GameState = {
   };
   pipes: {
     x: number;
+    height: number;
     position: "top" | "bottom";
   }[];
 };
 
 const MATRIX_SIZE = 64;
-const PIPE_LENGTH = 24;
 
 const INITIAL_GAME_STATE: GameState = {
   state: "initial",
@@ -39,14 +39,19 @@ const INITIAL_GAME_STATE: GameState = {
   pipes: [
     {
       x: 30,
+      height: 32,
       position: "top",
     },
     {
       x: 60,
+      height: 32,
       position: "bottom",
     },
   ],
 };
+
+const GAP_HEIGHT_EASY = 24;
+const GAP_HEIGHT_HARD = 24;
 
 // prettier-ignore
 const birdPixelArray = [
@@ -114,7 +119,7 @@ const getGameStateMatrix = (gameState: GameState): Matrix => {
 
   // Draw pipes
   gameState.pipes.forEach((pipe) => {
-    for (let i = 0; i < PIPE_LENGTH; i++) {
+    for (let i = 0; i < pipe.height; i++) {
       let y;
       if (pipe.position === "top") {
         y = i;
@@ -128,7 +133,7 @@ const getGameStateMatrix = (gameState: GameState): Matrix => {
       if (pipe.x + 2 < MATRIX_SIZE) {
         matrix[y][pipe.x + 2] = PIPE_COLOUR;
       }
-      if (i > (PIPE_LENGTH * 3) / 4) {
+      if (i > (pipe.height * 3) / 4) {
         if (pipe.x + 3 < MATRIX_SIZE) {
           matrix[y][pipe.x + 3] = PIPE_COLOUR;
         }
@@ -162,6 +167,18 @@ const getNextFrame = (gameState: GameState): GameState => {
   if (gameState.state !== "playing") {
     return gameState;
   }
+  let difficulty = 0;
+  if (gameState.score < 10) {
+    difficulty = 0;
+  } else if (gameState.score < 20) {
+    difficulty = 1;
+  } else if (gameState.score < 30) {
+    difficulty = 2;
+  } else {
+    difficulty = 3;
+  }
+  const hasDoublePipes = true;
+
   const dt = 0.05; // change to take last frame's time vs. this frame's time
   let newGameState = {
     ...gameState,
@@ -172,6 +189,7 @@ const getNextFrame = (gameState: GameState): GameState => {
     },
     pipes: gameState.pipes.map((pipe) => ({
       x: pipe.x - 1,
+      height: pipe.height,
       position: pipe.position,
     })),
   };
@@ -179,10 +197,34 @@ const getNextFrame = (gameState: GameState): GameState => {
   if (newGameState.pipes[0].x < 0) {
     newGameState.score += 1;
     newGameState.pipes.shift();
-    newGameState.pipes.push({
-      x: 63,
-      position: Math.random() < 0.5 ? "top" : "bottom",
-    });
+    if (hasDoublePipes) {
+      const targetY = Math.floor(Math.random() * MATRIX_SIZE);
+      const topPipeHeight = Math.max(0, targetY - GAP_HEIGHT_EASY);
+      const bottomPipeHeight = Math.min(
+        MATRIX_SIZE - 1,
+        MATRIX_SIZE - (targetY + GAP_HEIGHT_EASY),
+      );
+      if (topPipeHeight > 0) {
+        newGameState.pipes.push({
+          x: MATRIX_SIZE - 1,
+          height: topPipeHeight,
+          position: "top",
+        });
+      }
+      if (bottomPipeHeight > 0) {
+        newGameState.pipes.push({
+          x: MATRIX_SIZE - 1,
+          height: bottomPipeHeight,
+          position: "bottom",
+        });
+      }
+    } else {
+      newGameState.pipes.push({
+        x: MATRIX_SIZE - 1,
+        height: Math.floor(MATRIX_SIZE / 2),
+        position: Math.random() < 0.5 ? "top" : "bottom",
+      });
+    }
   }
   if (newGameState.bird.y >= 64) {
     newGameState.bird.y = 63;
@@ -199,13 +241,13 @@ const getNextFrame = (gameState: GameState): GameState => {
       newGameState.bird.x <= pipe.x + 3 + COLLISION_DISTANCE
     ) {
       if (pipe.position === "top") {
-        if (newGameState.bird.y <= PIPE_LENGTH + COLLISION_DISTANCE) {
+        if (newGameState.bird.y <= pipe.height + COLLISION_DISTANCE) {
           newGameState = { ...newGameState, state: "dead" as const };
         }
       } else {
         if (
           newGameState.bird.y >=
-          MATRIX_SIZE - PIPE_LENGTH - COLLISION_DISTANCE
+          MATRIX_SIZE - pipe.height - COLLISION_DISTANCE
         ) {
           newGameState = { ...newGameState, state: "dead" as const };
         }
@@ -317,23 +359,26 @@ export const Matrix = ({
       }
     }
   }, [matrix, score, state]);
-  useInterval(() => {
-    if (canvasRef.current == null) {
-      return;
-    }
+  useInterval(
+    () => {
+      if (canvasRef.current == null) {
+        return;
+      }
 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (ctx == null) {
-      return;
-    }
-    const imgData = ctx.getImageData(0, 0, W, H);
-    const flat = imgData.data;
-    const rgb332 = encodeRgb332(flat);
-    if (!isDev) {
-      sendCanvas(rgb332);
-    }
-  }, Math.round(1000 / 10));
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
+      if (ctx == null) {
+        return;
+      }
+      const imgData = ctx.getImageData(0, 0, W, H);
+      const flat = imgData.data;
+      const rgb332 = encodeRgb332(flat);
+      if (!isDev) {
+        sendCanvas(rgb332);
+      }
+    },
+    Math.round(1000 / 10),
+  );
   return (
     <canvas
       width={64}
