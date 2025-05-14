@@ -7,15 +7,15 @@ fi
 echo "Connected!"
 
 echo "Building client..."
-pnpm --no-update-notifier --filter client build
+pnpm --offline --no-update-notifier --filter client build
 echo "Client built!"
 
 echo "Zipping archive..."
 rm -f totem.zip
 if [ $1 == "fast" ]; then
-        zip -r totem.zip . -x "*.git*" -x "*.DS_Store*" -x "*.pnpm*" -x "*node_modules*" -x "images/*" -x "fonts/*"
+        zip -r totem.zip . -x "*.git*" -x "*.DS_Store*" -x "*.pnpm*" -x "*node_modules*" -x "images/*" -x "fonts/*" -x "*.venv*" -x "*__pycache__*"
 else
-        zip -r totem.zip . -x "*.git*" -x "*.DS_Store*" -x "*.pnpm*" -x "*node_modules*"
+        zip -r totem.zip . -x "*.git*" -x "*.DS_Store*" -x "*.pnpm*" -x "*node_modules*" -x "*.venv*" -x "*__pycache__*"
 fi
 echo "Created zip archive"
 

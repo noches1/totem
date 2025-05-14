@@ -19,7 +19,7 @@ class Canvas:
         self.last_updated_at = current_time()
 
     def clear(self):
-        self.grid = [[0 for _ in range(width)] for _ in range(height)]
+        self.grid = [[0 for _ in range(self.width)] for _ in range(self.height)]
         self.last_updated_at = current_time()
 
     def update(self, grid):
@@ -32,7 +32,7 @@ class Canvas:
 art_canvas = Canvas()
 
 
-def rgb332_to_rgb(byte: int) -> tuple[int, int, int]:
+def rgb332_to_rgb(byte: int) -> tuple[int, int, int, int]:
     r3 = (byte >> 5) & 0x07
     g3 = (byte >> 2) & 0x07
     b2 = byte & 0x03
