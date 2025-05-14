@@ -73,7 +73,27 @@ const birdPixelArray = [
   [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
 ];
 
-const drawBird = (matrix: Matrix, bird: { x: number; y: number }) => {
+// prettier-ignore
+const birdPixelArray2 = [
+  [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, "#FFFF00", "#FFFF00", "#FFFF00", null, null, null, null, null, null],
+  [null, null, null, null, null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null, null, null, null],
+  [null, null, null, null, null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#000000", "#FFFF00", "#FF9900", null, null, null],
+  [null, null, null, null, null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FF9900", "#FF9900", "#FF9900", null],
+  [null, null,null,null,null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FF9900", "#FF9900", "#FF9900", "#FF9900"],
+  [null,null,null,null,null,null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FF9900", "#FF9900", null, null],
+  [null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null, null, null],
+  ["#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null, null],
+  [null, "FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#000000", "#FFFF00", "#000000", "#000000", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null],
+  [null, null, "#FFFF00", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null],
+  [null, null, "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null, null],
+  [null, null, "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#000000", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", "#FFFF00", null, null, null],
+  [null, null, "#FFFF00", "#FFFF00", "#FFFF00", null, null, null, null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+];
+
+const drawBird = (matrix: Matrix, bird: { x: number; y: number }, pixelArray: (string | null)[][]) => {
   // Calculate the top-left position to center the bird
   const startX = bird.x - 8;
   const startY = bird.y - 8;
@@ -91,7 +111,7 @@ const drawBird = (matrix: Matrix, bird: { x: number; y: number }) => {
         matrixX >= 0 &&
         matrixX < MATRIX_SIZE
       ) {
-        const color = birdPixelArray[y][x];
+        const color = pixelArray[y][x];
         // Convert color to grayscale value between 0 and 100
         if (color) {
           // Extract RGB values from hex color
@@ -145,7 +165,11 @@ const getGameStateMatrix = (gameState: GameState): Matrix => {
   });
 
   // Draw bird
-  drawBird(matrix, gameState.bird);
+  if (gameState.bird.vy > 0) {
+    drawBird(matrix, gameState.bird, birdPixelArray);
+  } else {
+    drawBird(matrix, gameState.bird, birdPixelArray2);
+  }
 
   return matrix;
 };
