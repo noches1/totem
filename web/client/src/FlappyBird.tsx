@@ -306,8 +306,10 @@ export const FlappyBird = () => {
         if (s.state === "dead" && !deathTimeout.current) {
           deathTimeout.current = setTimeout(() => {
             setGameState(INITIAL_GAME_STATE);
-            deathTimeout.current = null;
           }, 5000);
+        }
+        if (s.state !== "dead") {
+          deathTimeout.current = null;
         }
         return getNextFrame(s);
       });
