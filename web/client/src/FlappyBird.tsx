@@ -13,6 +13,7 @@ type State = "initial" | "playing" | "dead";
 
 type GameState = {
   state: State;
+  frame: number;
   score: number;
   bird: {
     x: number;
@@ -24,36 +25,28 @@ type GameState = {
     height: number;
     position: "top" | "bottom";
   }[];
+  nextPipeSpawn: number;
 };
 
 const MATRIX_SIZE = 64;
 
 const INITIAL_GAME_STATE: GameState = {
   state: "initial",
+  frame: 0,
+  nextPipeSpawn: 16,
   score: 0,
   bird: {
     x: 10,
     y: 48,
     vy: 0,
   },
-  pipes: [
-    {
-      x: MATRIX_SIZE + 32,
-      height: 32,
-      position: "top",
-    },
-    {
-      x: MATRIX_SIZE + 80,
-      height: 32,
-      position: "bottom",
-    },
-  ],
+  pipes: [],
 };
 
 const GAP_HEIGHT_EASY = 48;
 const GAP_HEIGHT_HARD = 32;
-const PIPE_SPAWN_X_EASY = MATRIX_SIZE + 32;
-const PIPE_SPAWN_X_HARD = MATRIX_SIZE + 3;
+const PIPE_SPAWN_EASY = 48;
+const PIPE_SPAWN_HARD = 32;
 
 // prettier-ignore
 const birdPixelArray = [
@@ -209,11 +202,12 @@ const getNextFrame = (gameState: GameState): GameState => {
   }
   const hasDoublePipes = difficulty >= 1;
   const gapSize = difficulty >= 2 ? GAP_HEIGHT_HARD : GAP_HEIGHT_EASY;
-  const spawnX = difficulty >= 3 ? PIPE_SPAWN_X_HARD : PIPE_SPAWN_X_EASY;
+  const pipeSpawnTime = difficulty >= 3 ? PIPE_SPAWN_HARD : PIPE_SPAWN_EASY;
 
   const dt = 0.05; // change to take last frame's time vs. this frame's time
   let newGameState = {
     ...gameState,
+    frame: gameState.frame + 1,
     bird: {
       x: gameState.bird.x,
       y: gameState.bird.y,
@@ -226,16 +220,13 @@ const getNextFrame = (gameState: GameState): GameState => {
     })),
   };
   newGameState.bird.y += newGameState.bird.vy * dt;
-
-  const numPipesOffScreen = newGameState.pipes.filter(
-    (pipe) => pipe.x < -3,
-  ).length;
-
-  if (numPipesOffScreen > 0) {
+  if (newGameState.pipes.find((pipe) => pipe.x < -3)) {
     newGameState.score += 1;
-    for (let i = 0; i < numPipesOffScreen; i++) {
-      newGameState.pipes.shift();
-    }
+  }
+  newGameState.pipes = newGameState.pipes.filter((pipe) => pipe.x >= -3);
+
+  if (newGameState.nextPipeSpawn <= newGameState.frame) {
+    newGameState.nextPipeSpawn += pipeSpawnTime;
     if (hasDoublePipes) {
       const targetY = Math.floor(Math.random() * MATRIX_SIZE);
       const topPipeHeight = Math.max(0, targetY - Math.floor(gapSize / 2));
@@ -245,21 +236,21 @@ const getNextFrame = (gameState: GameState): GameState => {
       );
       if (topPipeHeight > 0) {
         newGameState.pipes.push({
-          x: spawnX,
+          x: MATRIX_SIZE + 3,
           height: topPipeHeight,
           position: "top",
         });
       }
       if (bottomPipeHeight > 0) {
         newGameState.pipes.push({
-          x: spawnX,
+          x: MATRIX_SIZE + 3,
           height: bottomPipeHeight,
           position: "bottom",
         });
       }
     } else {
       newGameState.pipes.push({
-        x: spawnX,
+        x: MATRIX_SIZE + 3,
         height: Math.floor(MATRIX_SIZE / 2),
         position: Math.random() < 0.5 ? "top" : "bottom",
       });
