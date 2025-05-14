@@ -33,7 +33,7 @@ const MATRIX_SIZE = 64;
 const INITIAL_GAME_STATE: GameState = {
   state: "initial",
   frame: 0,
-  nextPipeSpawn: 16,
+  nextPipeSpawn: 32,
   score: 0,
   bird: {
     x: 10,
