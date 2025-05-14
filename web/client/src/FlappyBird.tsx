@@ -209,7 +209,6 @@ const getNextFrame = (gameState: GameState): GameState => {
 export const FlappyBird = () => {
   const [gameState, setGameState] = useState<GameState>(INITIAL_GAME_STATE);
   const matrix = getGameStateMatrix(gameState);
-  console.log(matrix)
   useEffect(() => {
     const interval = setInterval(() => {
       setGameState((s) => getNextFrame(s));
