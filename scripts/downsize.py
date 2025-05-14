@@ -1,4 +1,4 @@
-from PIL import Image, ImageSequence
+from PIL import Image, ImageSequence, ImageOps
 from pathlib import Path
 
 SUPPORTED_EXTENSIONS = [".gif", ".jpg", ".jpeg", ".png"]
@@ -10,9 +10,10 @@ images_dir = repo_root / "images"
 
 def thumbnails(frames):
     for frame in frames:
-        thumbnail = frame.copy()
-        thumbnail.thumbnail(TOTEM_LED_SIZE)
-        yield thumbnail
+        thumb = ImageOps.fit(
+            frame, TOTEM_LED_SIZE, method=Image.LANCZOS, centering=(0.5, 0.5)
+        )
+        yield thumb
 
 
 def downsize():
@@ -32,9 +33,11 @@ def downsize():
                 om.save(image_path, save_all=True, append_images=list(frames))
         else:
             with Image.open(image_path) as img:
-                img = img.resize(TOTEM_LED_SIZE)
+                thumb = ImageOps.fit(
+                    img, TOTEM_LED_SIZE, method=Image.LANCZOS, centering=(0.5, 0.5)
+                )
                 print(f"Saving {image_path}")
-                img.save(image_path)
+                thumb.save(image_path)
 
 
 downsize()
