@@ -2,6 +2,7 @@ import * as React from "react";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { FlappyBird } from "./FlappyBird";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 
 const isDev = import.meta.env.MODE === "development";
 const baseUrl = isDev ? "http://localhost" : "http://totem.local";
@@ -27,6 +28,33 @@ const filenameToCommand = (filename: string) => {
 };
 
 function App() {
+  return (
+    <div className="flex flex-col gap-2 p-4">
+      <div className="p-4 border-b">
+        <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+          Totem
+        </h3>
+      </div>
+      <div className="flex gap-2 mb-2">
+        <Tabs className="w-full" defaultValue="commands">
+          <TabsList>
+            <TabsTrigger value="commands">Commands</TabsTrigger>
+            <TabsTrigger value="flappybird">Flappy Bird</TabsTrigger>
+          </TabsList>
+          <div className="h-px bg-gray-300 my-4"></div>
+          <TabsContent value="commands">
+            <Commands />
+          </TabsContent>
+          <TabsContent value="flappybird">
+            <FlappyBird />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}
+
+const Commands = () => {
   const [allCommands, setAllCommands] = React.useState<Command[]>([]);
   React.useEffect(() => {
     const f = async () => {
@@ -86,13 +114,8 @@ function App() {
     });
   }, []);
   return (
-    <div className="flex flex-col gap-2">
-      <div className="p-4 border-b">
-        <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-          Totem
-        </h3>
-      </div>
-      <div className="flex flex-col gap-2 p-4">
+    <div>
+      <div className="flex flex-col gap-2">
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-2">
             <h4 className="font-medium tracking-tight scroll-m-20 col-span-2">
@@ -165,11 +188,10 @@ function App() {
               {command.name}
             </Button>
           ))}
-          <FlappyBird />
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default App;
