@@ -310,7 +310,6 @@ export const FlappyBird = () => {
       className="flex flex-col gap-2"
       onClick={() => setGameState((s) => getNextFrame(onClick(s)))}
     >
-      <p className="text-2xl font-bold text-center mt-4">flappy bird</p>
       <Matrix matrix={matrix} score={gameState.score} state={gameState.state} />
     </div>
   );

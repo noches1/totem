@@ -29,19 +29,22 @@ const filenameToCommand = (filename: string) => {
 
 function App() {
   return (
-    <div className="flex flex-col gap-2 p-4">
-      <div className="p-4 border-b">
-        <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
-          Totem
-        </h3>
-      </div>
+    <div className="flex flex-col items-center gap-2 p-4">
+      <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
+        Totem
+      </h3>
       <div className="flex gap-2 mb-2">
         <Tabs className="w-full" defaultValue="commands">
-          <TabsList>
+          <TabsList className="mx-auto">
             <TabsTrigger value="commands">Commands</TabsTrigger>
-            <TabsTrigger onClick={() => changeCommand("canvas")} value="flappybird">Flappy Bird</TabsTrigger>
+            <TabsTrigger
+              onClick={() => changeCommand("canvas")}
+              value="flappybird"
+            >
+              Flappy Duck
+            </TabsTrigger>
           </TabsList>
-          <div className="h-px bg-gray-300 my-4"></div>
+          <div className="h-px bg-gray-700 my-4"></div>
           <TabsContent value="commands">
             <Commands />
           </TabsContent>
