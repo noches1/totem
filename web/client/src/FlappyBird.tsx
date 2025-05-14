@@ -8,6 +8,7 @@ const GRAVITY = 300;
 const MAX_SPEED = 100;
 
 type GameState = {
+  state: "playing" | "dead";
   bird: {
     x: number;
     y: number;
@@ -21,10 +22,9 @@ type GameState = {
 
 const MATRIX_SIZE = 64;
 const PIPE_LENGTH = 24;
-const PIPE_TOP_Y = 0;
-const BOTTOM_PIPE_Y = MATRIX_SIZE - PIPE_LENGTH;
 
 const INITIAL_GAME_STATE: GameState = {
+  state: "dead",
   bird: {
     x: 10,
     y: 32,
@@ -144,14 +144,15 @@ const getGameStateMatrix = (gameState: GameState): Matrix => {
 };
 
 const birdJump = (gameState: GameState): GameState => {
-  const newGameState = { ...gameState };
+  const newGameState = { ...gameState, state: "playing" as const };
   newGameState.bird.vy = -100;
   return newGameState;
 };
 
+const COLLISION_DISTANCE = 6
 const getNextFrame = (gameState: GameState): GameState => {
   const dt = 0.05; // change to take last frame's time vs. this frame's time
-  const newGameState = {
+  let newGameState = {
     ...gameState,
     bird: {
       x: gameState.bird.x,
@@ -179,7 +180,21 @@ const getNextFrame = (gameState: GameState): GameState => {
     newGameState.bird.y = 0;
     newGameState.bird.vy = 0;
   }
-  // sendCanvas(getGameStateMatrix(newGameState));
+  // collision detection, bird within 2px of pipe
+  newGameState.pipes.forEach((pipe) => {
+    if (newGameState.bird.x >= pipe.x - COLLISION_DISTANCE && newGameState.bird.x <= pipe.x + 3 + COLLISION_DISTANCE) {
+      if (pipe.position === "top") {
+        if (newGameState.bird.y <= PIPE_LENGTH + COLLISION_DISTANCE) {
+          newGameState = INITIAL_GAME_STATE
+        }
+      } else {
+        if (newGameState.bird.y >= MATRIX_SIZE - PIPE_LENGTH - COLLISION_DISTANCE) {
+          newGameState = INITIAL_GAME_STATE
+        }
+      }
+    }
+  });
+  sendCanvas(getGameStateMatrix(newGameState));
   return newGameState;
 };
 
