@@ -317,9 +317,12 @@ class Picture(Matrix):
         elif file.split(".")[-1] == "gif":
             gif = Image.open(f"{file}")
             num_frames = gif.n_frames
+            durations = []
             frames = []
             for frame_index in range(0, num_frames):
                 gif.seek(frame_index)
+                duration = gif.info['duration']
+                durations.append(duration)
                 frame = gif.copy()
                 frame = self.double(frame)
                 frame.thumbnail((self.matrix.width, self.matrix.height), Image.LANCZOS)
@@ -328,7 +331,7 @@ class Picture(Matrix):
                 self.canvases[frame_index].SetImage(frame.convert("RGB"))
                 frames.append(self.canvases[frame_index])
             gif.close()
-            self.thread = StoppableThread(target=self.gif, args=(frames, num_frames))
+            self.thread = StoppableThread(target=self.gif, args=(frames, num_frames, durations))
             print("Starting GIF thread")
             self.thread.start()
         elif file.split(".")[-1] == "txt":
@@ -339,13 +342,13 @@ class Picture(Matrix):
             print("Starting text thread")
             self.thread.start()
 
-    def gif(self, frames, num_frames):
+    def gif(self, frames, num_frames, durations):
         cur_frame = 1  # TODO why does frame 0 glitch?
         while True:
             if IS_DEV:
                 self.matrix.SwapOnVSync(frames[cur_frame])
             else:
-                self.matrix.SwapOnVSync(frames[cur_frame], framerate_fraction=10)
+                self.matrix.SwapOnVSync(frames[cur_frame], framerate_fraction=max(durations[cur_frame] // 16, 1))
             if cur_frame == num_frames - 1:
                 cur_frame = 1
             else:
@@ -353,14 +356,14 @@ class Picture(Matrix):
             if self.thread.stopped():
                 break
 
-    def gif_n(self, frames, num_frames, iters, framerate):
+    def gif_n(self, frames, num_frames, iters, framerate, durations):
         cur_frame = 1
         i = 0
         while i < iters:
             if IS_DEV:
                 self.matrix.SwapOnVSync(frames[cur_frame])
             else:
-                self.matrix.SwapOnVSync(frames[cur_frame], framerate_fraction=framerate)
+                self.matrix.SwapOnVSync(frames[cur_frame], framerate_fraction=max(durations[cur_frame] // 16, 1))
             if cur_frame == num_frames - 1:
                 cur_frame = 1
                 i += 1
@@ -439,8 +442,10 @@ class Picture(Matrix):
             print(img_idx, gifs_to_cycle[img_idx])
             num_frames = gif.n_frames
             frames = []
+            durations = []
             for frame_index in range(0, num_frames):
                 gif.seek(frame_index)
+                durations.append(gif.info['duration'])
                 frame = gif.copy()
                 frame = self.double(frame)
                 frame.thumbnail((self.matrix.width, self.matrix.height), Image.LANCZOS)
@@ -449,7 +454,7 @@ class Picture(Matrix):
                 self.canvases[frame_index].SetImage(frame.convert("RGB"))
                 frames.append(self.canvases[frame_index])
             gif.close()
-            self.gif_n(frames, num_frames, iters, framerate)
+            self.gif_n(frames, num_frames, iters, framerate, durations)
             img_idx = (img_idx + 1) % len(gifs_to_cycle)
             if self.thread.stopped():
                 break
