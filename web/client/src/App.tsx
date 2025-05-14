@@ -39,7 +39,7 @@ function App() {
         <Tabs className="w-full" defaultValue="commands">
           <TabsList>
             <TabsTrigger value="commands">Commands</TabsTrigger>
-            <TabsTrigger value="flappybird">Flappy Bird</TabsTrigger>
+            <TabsTrigger onClick={() => changeCommand("canvas")} value="flappybird">Flappy Bird</TabsTrigger>
           </TabsList>
           <div className="h-px bg-gray-300 my-4"></div>
           <TabsContent value="commands">
