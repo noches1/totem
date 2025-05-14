@@ -33,11 +33,11 @@ const INITIAL_GAME_STATE: GameState = {
   pipes: [
     {
       x: 30,
-      position: "bottom",
+      position: "top",
     },
     {
       x: 60,
-      position: "top",
+      position: "bottom",
     },
   ],
 };
@@ -209,6 +209,7 @@ const getNextFrame = (gameState: GameState): GameState => {
 export const FlappyBird = () => {
   const [gameState, setGameState] = useState<GameState>(INITIAL_GAME_STATE);
   const matrix = getGameStateMatrix(gameState);
+  console.log(matrix)
   useEffect(() => {
     const interval = setInterval(() => {
       setGameState((s) => getNextFrame(s));
@@ -230,9 +231,10 @@ export const Matrix = ({ matrix }: { matrix: Matrix }) => {
   const W = 64;
   const H = 64;
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  if (canvasRef.current) {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
+  useEffect(() => {
+    if (canvasRef.current) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
     if (ctx != null) {
       const imgData = ctx.createImageData(W, H);
       const data = imgData.data;
@@ -249,6 +251,7 @@ export const Matrix = ({ matrix }: { matrix: Matrix }) => {
       ctx.putImageData(imgData, 0, 0);
     }
   }
+  }, [matrix])
   return (
     <canvas
       width={64}
