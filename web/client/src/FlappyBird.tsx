@@ -136,6 +136,7 @@ const getEmptyMatrix = (): Matrix => {
 };
 
 const PIPE_COLOUR = [0, 255, 0] as Pixel;
+const PIPE_HOLE_COLOUR = [0, 128, 0] as Pixel;
 
 const getGameStateMatrix = (gameState: GameState): Matrix => {
   const matrix = getEmptyMatrix();
@@ -155,7 +156,8 @@ const getGameStateMatrix = (gameState: GameState): Matrix => {
         if (pipe.x + j >= MATRIX_SIZE || pipe.x + j < 0) {
           continue;
         }
-        matrix[y][pipe.x + j] = PIPE_COLOUR;
+        matrix[y][pipe.x + j] =
+          j === 0 && !drawHead ? PIPE_HOLE_COLOUR : PIPE_COLOUR;
       }
       if (drawHead) {
         const left = pipe.x - 1;
