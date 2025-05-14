@@ -9,8 +9,10 @@ type Matrix = Pixel[][];
 const GRAVITY = 300;
 const MAX_SPEED = 100;
 
+type State = "initial" | "playing" | "dead";
+
 type GameState = {
-  state: "playing" | "dead";
+  state: State;
   score: number;
   bird: {
     x: number;
@@ -27,11 +29,11 @@ const MATRIX_SIZE = 64;
 const PIPE_LENGTH = 24;
 
 const INITIAL_GAME_STATE: GameState = {
-  state: "dead",
+  state: "initial",
   score: 0,
   bird: {
     x: 10,
-    y: 32,
+    y: 48,
     vy: 0,
   },
   pipes: [
@@ -143,9 +145,12 @@ const getGameStateMatrix = (gameState: GameState): Matrix => {
   return matrix;
 };
 
-const birdJump = (gameState: GameState): GameState => {
-  if (gameState.state === "dead") {
+const onClick = (gameState: GameState): GameState => {
+  if (gameState.state === "initial") {
     return { ...gameState, state: "playing" as const };
+  }
+  if (gameState.state === "dead") {
+    return gameState;
   }
   const newGameState = { ...gameState, state: "playing" as const };
   newGameState.bird.vy = -100;
@@ -154,7 +159,7 @@ const birdJump = (gameState: GameState): GameState => {
 
 const COLLISION_DISTANCE = 4;
 const getNextFrame = (gameState: GameState): GameState => {
-  if (gameState.state === "dead") {
+  if (gameState.state !== "playing") {
     return gameState;
   }
   const dt = 0.05; // change to take last frame's time vs. this frame's time
@@ -195,14 +200,14 @@ const getNextFrame = (gameState: GameState): GameState => {
     ) {
       if (pipe.position === "top") {
         if (newGameState.bird.y <= PIPE_LENGTH + COLLISION_DISTANCE) {
-          newGameState = INITIAL_GAME_STATE;
+          newGameState = { ...newGameState, state: "dead" as const };
         }
       } else {
         if (
           newGameState.bird.y >=
           MATRIX_SIZE - PIPE_LENGTH - COLLISION_DISTANCE
         ) {
-          newGameState = INITIAL_GAME_STATE;
+          newGameState = { ...newGameState, state: "dead" as const };
         }
       }
     }
@@ -213,19 +218,28 @@ const getNextFrame = (gameState: GameState): GameState => {
 export const FlappyBird = () => {
   const [gameState, setGameState] = useState<GameState>(INITIAL_GAME_STATE);
   const matrix = getGameStateMatrix(gameState);
+  const deathTimeout = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
     const interval = setInterval(() => {
-      setGameState((s) => getNextFrame(s));
+      setGameState((s) => {
+        if (s.state === "dead" && !deathTimeout.current) {
+          deathTimeout.current = setTimeout(() => {
+            setGameState(INITIAL_GAME_STATE);
+            deathTimeout.current = null;
+          }, 5000);
+        }
+        return getNextFrame(s);
+      });
     }, 50);
     return () => clearInterval(interval);
   }, []);
   return (
     <div
       className="flex flex-col gap-2"
-      onClick={() => setGameState((s) => getNextFrame(birdJump(s)))}
+      onClick={() => setGameState((s) => getNextFrame(onClick(s)))}
     >
       <p className="text-2xl font-bold text-center mt-4">flappy bird</p>
-      <Matrix matrix={matrix} score={gameState.score} />
+      <Matrix matrix={matrix} score={gameState.score} state={gameState.state} />
     </div>
   );
 };
@@ -259,8 +273,10 @@ function encodeRgb332(imgDataData: Uint8ClampedArray): Uint8Array {
 
 export const Matrix = ({
   score,
+  state,
   matrix,
 }: {
+  state: State;
   score: number;
   matrix: Matrix;
 }) => {
@@ -285,32 +301,39 @@ export const Matrix = ({
           }
         }
         ctx.putImageData(imgData, 0, 0);
-        ctx.font = "16px sans-serif";
         ctx.fillStyle = "white";
-        ctx.fillText(score.toString(), 4, 16);
+        if (state === "initial") {
+          ctx.font = "11px sans-serif";
+          ctx.fillText("click to start", 2, 36);
+        }
+        if (state === "playing" || state === "dead") {
+          ctx.font = "16px sans-serif";
+          ctx.fillText(score.toString(), 4, 16);
+        }
+        if (state === "dead") {
+          ctx.font = "12px sans-serif";
+          ctx.fillText("game over", 4, 36);
+        }
       }
     }
-  }, [matrix, score]);
-  useInterval(
-    () => {
-      if (canvasRef.current == null) {
-        return;
-      }
+  }, [matrix, score, state]);
+  useInterval(() => {
+    if (canvasRef.current == null) {
+      return;
+    }
 
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-      if (ctx == null) {
-        return;
-      }
-      const imgData = ctx.getImageData(0, 0, W, H);
-      const flat = imgData.data;
-      const rgb332 = encodeRgb332(flat);
-      if (!isDev) {
-        sendCanvas(rgb332);
-      }
-    },
-    Math.round(1000 / 10),
-  );
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (ctx == null) {
+      return;
+    }
+    const imgData = ctx.getImageData(0, 0, W, H);
+    const flat = imgData.data;
+    const rgb332 = encodeRgb332(flat);
+    if (!isDev) {
+      sendCanvas(rgb332);
+    }
+  }, Math.round(1000 / 10));
   return (
     <canvas
       width={64}
