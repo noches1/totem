@@ -32,11 +32,7 @@ const INITIAL_GAME_STATE: GameState = {
   },
   pipes: [
     {
-      x: 20,
-      position: "top",
-    },
-    {
-      x: 40,
+      x: 35,
       position: "bottom",
     },
     {
