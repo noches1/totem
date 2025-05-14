@@ -177,7 +177,7 @@ const getNextFrame = (gameState: GameState): GameState => {
   } else {
     difficulty = 3;
   }
-  const hasDoublePipes = true;
+  const hasDoublePipes = difficulty >= 1;
 
   const dt = 0.05; // change to take last frame's time vs. this frame's time
   let newGameState = {
@@ -194,15 +194,20 @@ const getNextFrame = (gameState: GameState): GameState => {
     })),
   };
   newGameState.bird.y += newGameState.bird.vy * dt;
-  if (newGameState.pipes[0].x < 0) {
+  const numPipesOffScreen = newGameState.pipes.filter(
+    (pipe) => pipe.x < 0,
+  ).length;
+  if (numPipesOffScreen > 0) {
     newGameState.score += 1;
-    newGameState.pipes.shift();
+    for (let i = 0; i < numPipesOffScreen; i++) {
+      newGameState.pipes.shift();
+    }
     if (hasDoublePipes) {
       const targetY = Math.floor(Math.random() * MATRIX_SIZE);
-      const topPipeHeight = Math.max(0, targetY - GAP_HEIGHT_EASY);
+      const topPipeHeight = Math.max(0, targetY - Math.floor(GAP_HEIGHT_EASY));
       const bottomPipeHeight = Math.min(
         MATRIX_SIZE - 1,
-        MATRIX_SIZE - (targetY + GAP_HEIGHT_EASY),
+        MATRIX_SIZE - (targetY + Math.floor(GAP_HEIGHT_EASY / 2)),
       );
       if (topPipeHeight > 0) {
         newGameState.pipes.push({
