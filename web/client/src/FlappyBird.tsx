@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { sendCanvas } from "./api";
 
-type Matrix = number[][];
+export type Pixel = [number, number, number];
+type Matrix = Pixel[][];
 
 type GameState = {
   bird: {
@@ -14,32 +15,89 @@ type GameState = {
   }[];
 };
 
+const MATRIX_SIZE = 64;
+const PIPE_LENGTH = 24;
+const PIPE_TOP_Y = 0;
+const BOTTOM_PIPE_Y = MATRIX_SIZE - PIPE_LENGTH;
+
 const INITIAL_GAME_STATE: GameState = {
   bird: {
-    x: 32,
+    x: 10,
     y: 32,
   },
   pipes: [
     {
+      x: 20,
+      y: PIPE_TOP_Y,
+    },
+    {
       x: 40,
-      y: 0,
+      y: BOTTOM_PIPE_Y,
     },
     {
-      x: 50,
-      y: 32,
-    },
-    {
-      x: 63,
-      y: 0,
+      x: 60,
+      y: PIPE_TOP_Y,
     },
   ],
+};
+
+// prettier-ignore
+const birdPixelArray = [
+  [null, null, null, null, null, null, "#000000", "#000000", "#000000", "#333333", null, null, null, null, null, null],
+  [null, null, null, null, null, "#000000", "#c2ddd0", "#000000", "#c2ddd0", "#3c4c36", "#3c4c36", null, null, null, null, null],
+  [null, null, null, "#5c5c5c", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#707070", null, null, null, null],
+  ["#000000", null, "#c2cec0", "#c2ddd0", "#c2ddd0", "#000000", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#5c6c54", null, "#3c4c36", "#3c4c36"],
+  [null, "#c2ddd0", "#c2ddd0", "#000000", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#5c6c54", "#000000", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#8c9c84", "#c2cec0", "#3c4c36"],
+  ["#3c4c36", "#c2ddd0", "#c2ddd0", "#5c6c54", "#3c4c36", "#5c6c54", "#c2ddd0", "#c2ddd0", "#ff9080", null, "#735745", "#000000", "#ff9080", "#c2ddd0", "#c2ddd0", "#3c4c36"],
+  ["#3c4c36", "#3c4c36", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#ff9080", null, "#735745", "#ffa020", "#000000", "#c2ddd0", "#3c4c36", "#3c4c36"],
+  [null, "#000000", "#000000", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#5c6c54", null, null],
+  [null, "#3c4c36", "#000000", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#ffffff", "#ffffff", "#c2ddd0", "#707070", null, null],
+  ["#000000", "#c2cec0", "#3c4c36", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#ffffff", "#ffffff", "#ffffff", "#ffffff", "#c2cec0", null, null],
+  ["#000000", "#c2ddd0", "#000000", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#ffffff", "#ffffff", "#ffffff", "#c2cec0", "#707070", null, null],
+  [null, "#c2ddd0", "#3c4c36", "#000000", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2cec0", "#c2cec0", "#707070", null, null, null, null],
+  [null, null, "#c2ddd0", "#c2ddd0", "#000000", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2ddd0", "#c2cec0", "#707070", null, null, null, null, null],
+  [null, null, "#c2cec0", "#3c4c36", "#000000", "#c2cec0", "#c2ddd0", "#c2ddd0", "#707070", "#707070", null, null, null, null, null, null],
+  [null, null, null, "#000000", "#000000", "#000000", "#000000", "#000000", "#000000", null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null]
+];
+
+const drawBird = (matrix: Matrix, bird: { x: number; y: number }) => {
+  // Calculate the top-left position to center the bird
+  const startX = bird.x - 8;
+  const startY = bird.y - 8;
+
+  // Draw the bird pixel by pixel
+  for (let y = 0; y < 16; y++) {
+    for (let x = 0; x < 16; x++) {
+      const matrixY = startY + y;
+      const matrixX = startX + x;
+
+      // Only draw if within matrix bounds
+      if (
+        matrixY >= 0 &&
+        matrixY < MATRIX_SIZE &&
+        matrixX >= 0 &&
+        matrixX < MATRIX_SIZE
+      ) {
+        const color = birdPixelArray[y][x];
+        // Convert color to grayscale value between 0 and 100
+        if (color) {
+          // Extract RGB values from hex color
+          const r = parseInt(color.slice(1, 3), 16);
+          const g = parseInt(color.slice(3, 5), 16);
+          const b = parseInt(color.slice(5, 7), 16);
+          matrix[matrixY][matrixX] = [r, g, b]
+        }
+      }
+    }
+  }
 };
 
 const getEmptyMatrix = (): Matrix => {
   const size = 64;
   return Array(size)
-    .fill(0)
-    .map(() => Array(size).fill(0));
+    .fill(null)
+    .map(() => Array(size).fill([0, 0, 0]));
 };
 
 const getGameStateMatrix = (gameState: GameState): Matrix => {
@@ -47,49 +105,16 @@ const getGameStateMatrix = (gameState: GameState): Matrix => {
 
   // Draw pipes
   gameState.pipes.forEach((pipe) => {
-    for (let y = 0; y < 32; y++) {
-      matrix[pipe.y + y][pipe.x] = 100;
+    for (let y = 0; y < PIPE_LENGTH; y++) {
+      matrix[pipe.y + y][pipe.x] = [255, 255, 255];
     }
   });
 
   // Draw bird
-  matrix[gameState.bird.y][gameState.bird.x] = 100;
+  drawBird(matrix, gameState.bird);
 
   return matrix;
 };
-
-// const testMatrix: Matrix = (() => {
-//   // Create a 64x64 matrix
-//   const size = 64;
-//   const result: Matrix = Array(size)
-//     .fill(0)
-//     .map(() => Array(size).fill(0));
-//
-//   // Draw a simple pattern - a circle in the middle
-//   const centerX = size / 2;
-//   const centerY = size / 2;
-//   const radius = size / 4;
-//
-//   for (let y = 0; y < size; y++) {
-//     for (let x = 0; x < size; x++) {
-//       // Calculate distance from center
-//       const distance = Math.sqrt(
-//         Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2)
-//       );
-//
-//       // Set intensity based on distance from center
-//       if (distance < radius) {
-//         result[y][x] = 80; // Solid inside
-//       } else if (distance < radius + 5) {
-//         result[y][x] = 50; // Gradient edge
-//       } else if (distance < radius + 10) {
-//         result[y][x] = 20; // Faint outer edge
-//       }
-//     }
-//   }
-//
-//   return result;
-// })();
 
 const birdJump = (gameState: GameState): GameState => {
   const newGameState = { ...gameState };
@@ -113,7 +138,7 @@ const getNextFrame = (gameState: GameState): GameState => {
     newGameState.pipes.shift();
     newGameState.pipes.push({
       x: 63,
-      y: Math.random() < 0.5 ? 0 : 32,
+      y: Math.random() < 0.5 ? PIPE_TOP_Y : BOTTOM_PIPE_Y,
     });
   }
   if (newGameState.bird.y >= 64) {
@@ -154,7 +179,7 @@ export const Matrix = ({ matrix }: { matrix: Matrix }) => {
           <div
             key={`${i}-${j}`}
             style={{
-              backgroundColor: `rgba(255, 255, 255, ${cell / 100})`,
+              backgroundColor: `rgba(${cell[0]}, ${cell[1]}, ${cell[2]}, 1)`,
             }}
           />
         )),
