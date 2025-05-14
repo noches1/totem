@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { sendCanvas } from "./api";
 import { useInterval } from "./useInterval";
 
+const isDev = import.meta.env.MODE === "development";
 export type Pixel = [number, number, number];
 type Matrix = Pixel[][];
 
@@ -304,7 +305,9 @@ export const Matrix = ({
       const imgData = ctx.getImageData(0, 0, W, H);
       const flat = imgData.data;
       const rgb332 = encodeRgb332(flat);
-      sendCanvas(rgb332);
+      if (!isDev) {
+        sendCanvas(rgb332);
+      }
     },
     Math.round(1000 / 10),
   );
