@@ -29,6 +29,8 @@ type GameState = {
 };
 
 const MATRIX_SIZE = 64;
+const PIPE_WIDTH = 8;
+const PIPE_HEAD_SIZE = 6;
 
 const INITIAL_GAME_STATE: GameState = {
   state: "initial",
@@ -43,10 +45,12 @@ const INITIAL_GAME_STATE: GameState = {
   pipes: [],
 };
 
-const GAP_HEIGHT_EASY = 48;
+const GAP_HEIGHT_EASY = 42;
 const GAP_HEIGHT_HARD = 32;
+const GAP_HEIGHT_EXTREME = 28;
 const PIPE_SPAWN_EASY = 48;
 const PIPE_SPAWN_HARD = 32;
+const PIPE_SPAWN_EXTREME = 28;
 
 // prettier-ignore
 const birdPixelArray = [
@@ -139,25 +143,28 @@ const getGameStateMatrix = (gameState: GameState): Matrix => {
   // Draw pipes
   gameState.pipes.forEach((pipe) => {
     for (let i = 0; i < pipe.height; i++) {
+      const drawHead = pipe.height - i < PIPE_HEAD_SIZE;
       let y;
       if (pipe.position === "top") {
         y = i;
       } else {
         y = MATRIX_SIZE - i - 1;
       }
-      matrix[y][pipe.x] = PIPE_COLOUR;
-      if (pipe.x + 1 < MATRIX_SIZE) {
-        matrix[y][pipe.x + 1] = PIPE_COLOUR;
-      }
-      if (pipe.x + 2 < MATRIX_SIZE) {
-        matrix[y][pipe.x + 2] = PIPE_COLOUR;
-      }
-      if (i > (pipe.height * 3) / 4) {
-        if (pipe.x + 3 < MATRIX_SIZE) {
-          matrix[y][pipe.x + 3] = PIPE_COLOUR;
+      for (let j = 0; j < PIPE_WIDTH; j++) {
+        // pipe.x can be negative
+        if (pipe.x + j >= MATRIX_SIZE || pipe.x + j < 0) {
+          continue;
         }
-        if (pipe.x - 1 >= 0) {
-          matrix[y][pipe.x - 1] = PIPE_COLOUR;
+        matrix[y][pipe.x + j] = PIPE_COLOUR;
+      }
+      if (drawHead) {
+        const left = pipe.x - 1;
+        const right = pipe.x + PIPE_WIDTH;
+        if (left >= 0 && left < MATRIX_SIZE) {
+          matrix[y][left] = PIPE_COLOUR;
+        }
+        if (right >= 0 && right < MATRIX_SIZE) {
+          matrix[y][right] = PIPE_COLOUR;
         }
       }
     }
@@ -190,19 +197,20 @@ const getNextFrame = (gameState: GameState): GameState => {
   if (gameState.state !== "playing") {
     return gameState;
   }
-  let difficulty = 0;
-  if (gameState.score < 10) {
-    difficulty = 0;
-  } else if (gameState.score < 20) {
-    difficulty = 1;
-  } else if (gameState.score < 30) {
-    difficulty = 2;
-  } else {
-    difficulty = 3;
-  }
+  const difficulty = Math.floor(gameState.score / 10);
   const hasDoublePipes = difficulty >= 1;
-  const gapSize = difficulty >= 2 ? GAP_HEIGHT_HARD : GAP_HEIGHT_EASY;
-  const pipeSpawnTime = difficulty >= 3 ? PIPE_SPAWN_HARD : PIPE_SPAWN_EASY;
+  const gapSize =
+    difficulty >= 4
+      ? GAP_HEIGHT_EXTREME
+      : difficulty >= 2
+        ? GAP_HEIGHT_HARD
+        : GAP_HEIGHT_EASY;
+  const pipeSpawnTime =
+    difficulty >= 5
+      ? PIPE_SPAWN_EXTREME
+      : difficulty >= 3
+        ? PIPE_SPAWN_HARD
+        : PIPE_SPAWN_EASY;
 
   const dt = 0.05; // change to take last frame's time vs. this frame's time
   let newGameState = {
@@ -220,10 +228,12 @@ const getNextFrame = (gameState: GameState): GameState => {
     })),
   };
   newGameState.bird.y += newGameState.bird.vy * dt;
-  if (newGameState.pipes.find((pipe) => pipe.x < -3)) {
+  if (newGameState.pipes.find((pipe) => pipe.x < -PIPE_WIDTH)) {
     newGameState.score += 1;
   }
-  newGameState.pipes = newGameState.pipes.filter((pipe) => pipe.x >= -3);
+  newGameState.pipes = newGameState.pipes.filter(
+    (pipe) => pipe.x >= -PIPE_WIDTH,
+  );
 
   if (newGameState.nextPipeSpawn <= newGameState.frame) {
     newGameState.nextPipeSpawn += pipeSpawnTime;
