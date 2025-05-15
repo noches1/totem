@@ -1,7 +1,8 @@
 
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { Canvas } from "./Canvas";
+import { useInterval } from "./useInterval";
 
 const MouseConstants = {
   INVALID: 0,
@@ -9,6 +10,39 @@ const MouseConstants = {
   MOUSE_MIDDLE: 2,
   MOUSE_RIGHT: 3,
 } as const;
+
+type Particle = {
+  px: number;
+  py: number;
+  vx: number;
+  vy: number;
+  lifetime: number;
+  color: string;
+};
+
+type State = {
+  particles: Particle[];
+};
+
+const INITIAL_VELOCITY = 1;
+
+const getNextParticle = (particle: Particle) => {
+  return {
+    ...particle,
+    px: particle.px + particle.vx,
+    py: particle.py + particle.vy,
+    // gravity
+    vy: particle.vy + 0.03,
+    lifetime: particle.lifetime - 1,
+  };
+};
+
+const getNextFrame = (state: State) => {
+  return {
+    ...state,
+    particles: state.particles.filter((p) => p.lifetime > 0).map((p) => getNextParticle(p)),
+  };
+};
 
 /*
  * Get the coordinates of a mouse event relative to a canvas element
@@ -47,24 +81,60 @@ function getMouse(e: MouseEvent, canvas: HTMLCanvasElement) {
   return { x, y };
 }
 
+const PARTICLE_DEBOUNCE = 10
+
 export const Draw = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const mouseLeftIsDown = useRef(false);
+  const mouse = useRef<{x: number, y: number} | null>(null);
+  const [state, setState] = useState<State>({
+    particles: [],
+  });
 
-  const draw = (e: MouseEvent) => {
+  useInterval(() => {
     if (canvasRef.current == null) {
       return;
     }
+    setState((state) => getNextFrame(state));
     const drawCtx = canvasRef.current.getContext("2d");
     if (drawCtx == null) {
       return;
     }
-    const mouse = getMouse(e, canvasRef.current);
-    drawCtx.beginPath();
-    drawCtx.fillStyle = "red";
-    drawCtx.arc(mouse.x, mouse.y, 2, 0, Math.PI * 2);
-    drawCtx.fill();
-  };
+    drawCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    state.particles.forEach((p) => {
+      drawCtx.beginPath();
+      drawCtx.globalAlpha = p.lifetime / 100;
+      drawCtx.fillStyle = p.color;
+      drawCtx.arc(p.px, p.py, p.lifetime / 100 * 2, 0, Math.PI * 2);
+      drawCtx.fill();
+      drawCtx.closePath();
+    });
+  }, 1000 / 60);
+
+  // particle spawning
+  useInterval(() => {
+    if (canvasRef.current == null) {
+      return;
+    }
+    if (!mouse.current) {
+      return
+    }
+    // create a particle and send it in a random direction
+    setState((state) => ({
+      ...state,
+      particles: [
+        ...state.particles,
+        {
+          px: mouse.current!.x,
+          py: mouse.current!.y,
+          vx: Math.random() * INITIAL_VELOCITY - INITIAL_VELOCITY / 2,
+          vy: Math.random() * INITIAL_VELOCITY - INITIAL_VELOCITY / 2,
+          lifetime: 100,
+          // random shade of blue
+          color: `rgb(${Math.floor(155 + Math.random()*50)}, ${155 + Math.floor(Math.random()*50)}, 255)`,
+        },
+      ],
+    }));
+  }, PARTICLE_DEBOUNCE);
 
   useDocumentBodyListener("mousedown", (e: MouseEvent) => {
     if (canvasRef.current == null) {
@@ -82,9 +152,7 @@ export const Draw = () => {
       window.getSelection()?.removeAllRanges();
 
       // We started dragging from within so we are now drawing
-      mouseLeftIsDown.current = true;
-
-      draw(e);
+      mouse.current = getMouse(e, canvasRef.current);
     }
   });
   useDocumentBodyListener("mousemove", (e: MouseEvent) => {
@@ -96,15 +164,13 @@ export const Draw = () => {
       return;
     }
     // If we started drawing within the canvas, draw the next part of the line
-    if (mouseLeftIsDown.current) {
-      draw(e);
-    }
+      mouse.current = getMouse(e, canvasRef.current);
   });
 
   useDocumentBodyListener("mouseup", function (e) {
     // If we released the left mouse button, stop drawing and finish the line
-    if (mouseLeftIsDown.current && e.which === MouseConstants.MOUSE_LEFT) {
-      mouseLeftIsDown.current = false;
+    if (mouse.current && e.which === MouseConstants.MOUSE_LEFT) {
+      mouse.current = null;
     }
   });
   useDocumentBodyListener(
