@@ -111,6 +111,7 @@ if __name__ == "__main__":
     adv = TotemAdvertisement(0)
     adv.register()
 
+last_client_timestamp = 0  # Epoch time in milliseconds
 
 def start_flask_app():
     flask_app = Flask(__name__, static_folder="./web/client/dist", static_url_path="")
@@ -127,6 +128,13 @@ def start_flask_app():
 
     @flask_app.route("/api/canvas", methods=["POST"])
     def canvas():
+        global last_client_timestamp
+        client_timestamp = request.headers.get("Client-Timestamp")
+        if client_timestamp:
+            client_timestamp = int(client_timestamp)
+            if client_timestamp < last_client_timestamp:
+                return jsonify({"status": "ok"})
+        last_client_timestamp = client_timestamp
         blob = zlib.decompress(request.get_data())
         grid = [list(blob[row * 64 : (row + 1) * 64]) for row in range(64)]
         art_canvas.update(grid)

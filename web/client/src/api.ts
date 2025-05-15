@@ -1,6 +1,5 @@
 import pako from "pako";
-const isDev = import.meta.env.MODE === "development";
-const baseUrl = isDev ? "http://localhost" : "http://totem.local";
+import { IS_DEV } from "./constants";
 
 export const sendCanvas = async (flat: Uint8Array) => {
   const deflated = pako.deflate(flat);
@@ -8,8 +7,9 @@ export const sendCanvas = async (flat: Uint8Array) => {
     method: "POST",
     headers: {
       "Content-Type": "application/octet-stream",
+      "Client-Timestamp": Date.now().toString(),
     },
-    body: flat,
+    body: deflated,
   });
 };
 

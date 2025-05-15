@@ -26,7 +26,7 @@ export const Canvas = React.forwardRef((_, ref: React.RefObject<HTMLCanvasElemen
         sendCanvas(rgb332);
       }
     },
-    Math.round(1000 / 10),
+    Math.round(1000 / 30),
   );
   return (
     <canvas

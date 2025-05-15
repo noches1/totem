@@ -82,7 +82,8 @@ function getMouse(e: MouseEvent, canvas: HTMLCanvasElement) {
   return { x, y };
 }
 
-const PARTICLE_DEBOUNCE = 10
+const PARTICLE_DEBOUNCE = 30
+const PARTICLE_SIZE = 3
 
 export const Draw = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -109,7 +110,7 @@ export const Draw = () => {
       drawCtx.beginPath();
       drawCtx.globalAlpha = p.lifetime / 100;
       drawCtx.fillStyle = p.color;
-      drawCtx.arc(p.px, p.py, p.lifetime / 100 * 2, 0, Math.PI * 2);
+      drawCtx.arc(p.px, p.py, p.lifetime / 100 * PARTICLE_SIZE, 0, Math.PI * 2);
       drawCtx.fill();
       drawCtx.closePath();
     });
@@ -135,7 +136,7 @@ export const Draw = () => {
           vy: Math.random() * INITIAL_VELOCITY - INITIAL_VELOCITY / 2,
           lifetime: 100,
           // random shade of blue
-          color: `rgb(${Math.floor(155 + Math.random()*50)}, ${155 + Math.floor(Math.random()*50)}, 255)`,
+          color: `rgb(${Math.floor(50 + Math.random()*200)}, ${50 + Math.floor(Math.random()*200)}, 150)`,
         },
       ],
     }));
