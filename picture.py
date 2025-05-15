@@ -662,7 +662,7 @@ class Picture(Matrix):
         print("Inside self.canvas_")
         while True:
             render_canvas(self.canvases, self.matrix)
-            time.sleep(0.03)
+            time.sleep(0.015)
             if self.thread.stopped():
                 break
 
