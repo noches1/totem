@@ -4,6 +4,7 @@ import { Canvas } from "./Canvas";
 import { useInterval } from "./useInterval";
 import { changeCommand } from "./api";
 import { Button } from "./components/ui/button";
+import { Slider } from "./components/ui/slider";
 
 const MouseConstants = {
   INVALID: 0,
@@ -32,7 +33,7 @@ const getNextParticle = (particle: Particle, settings: Settings) => {
     py: particle.py + particle.vy,
     // gravity
     vy: particle.vy + settings.gravity,
-    lifetime: Math.max(0, particle.lifetime - (10 / settings.lifetime)),
+    lifetime: Math.max(0, particle.lifetime - 10 / settings.lifetime),
   };
 };
 
@@ -94,12 +95,12 @@ const clamp = (value: number) => {
   return Math.max(0, Math.min(value, 255));
 };
 
-type ColourSetting = 'red' | 'green' | 'blue' | 'rainbow' | 'rainbow-light'
-type GravitySetting = 0 | 0.03 | 0.1;
-type Lifetime = 2 | 5 | 10;
-type Spread = 0.3 | 1 | 3;
-type Amount = 30 | 100 | 1000; // particles per second
-type Size = 1 | 3 | 10;
+type ColourSetting = "red" | "green" | "blue" | "rainbow" | "rainbow-light";
+type GravitySetting = number;
+type Lifetime = number;
+type Spread = number;
+type Amount = number;
+type Size = number;
 type Settings = {
   amount: Amount;
   colour: ColourSetting;
@@ -127,18 +128,18 @@ const colourFromSetting = (setting: ColourSetting) => {
 const getRandomColour = (colour: Colour) => {
   const r = clamp(
     Math.floor(
-      colour.r + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2
-    )
+      colour.r + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2,
+    ),
   );
   const g = clamp(
     Math.floor(
-      colour.g + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2
-    )
+      colour.g + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2,
+    ),
   );
   const b = clamp(
     Math.floor(
-      colour.b + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2
-    )
+      colour.b + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2,
+    ),
   );
   return { r, g, b };
 };
@@ -151,7 +152,7 @@ export const Draw = () => {
   });
   const [settings, setSettings] = useState<Settings>({
     amount: 100,
-    colour: 'blue',
+    colour: "blue",
     gravity: 0.03,
     lifetime: 10,
     size: 3,
@@ -179,9 +180,9 @@ export const Draw = () => {
       drawCtx.arc(
         p.px,
         p.py,
-        ((p.lifetime / 100)) * settings.size,
+        (p.lifetime / 100) * settings.size,
         0,
-        Math.PI * 2
+        Math.PI * 2,
       );
       drawCtx.fill();
       drawCtx.closePath();
@@ -189,28 +190,31 @@ export const Draw = () => {
   }, 1000 / 60);
 
   // particle spawning
-  useInterval(() => {
-    if (canvasRef.current == null) {
-      return;
-    }
-    if (!mouse.current) {
-      return;
-    }
-    // create a particle and send it in a random direction
-    const newColour = getRandomColour(colourFromSetting(settings.colour));
-    const newParticle = {
-      px: mouse.current!.x,
-      py: mouse.current!.y,
-      vx: Math.random() * settings.spread - settings.spread / 2,
-      vy: Math.random() * settings.spread - settings.spread / 2,
-      lifetime: 100,
-      color: `rgb(${newColour.r}, ${newColour.g}, ${newColour.b})`,
-    };
-    setState((state) => ({
-      ...state,
-      particles: [...state.particles, newParticle],
-    }));
-  }, Math.floor(1000 / settings.amount));
+  useInterval(
+    () => {
+      if (canvasRef.current == null) {
+        return;
+      }
+      if (!mouse.current) {
+        return;
+      }
+      // create a particle and send it in a random direction
+      const newColour = getRandomColour(colourFromSetting(settings.colour));
+      const newParticle = {
+        px: mouse.current!.x,
+        py: mouse.current!.y,
+        vx: Math.random() * settings.spread - settings.spread / 2,
+        vy: Math.random() * settings.spread - settings.spread / 2,
+        lifetime: 100,
+        color: `rgb(${newColour.r}, ${newColour.g}, ${newColour.b})`,
+      };
+      setState((state) => ({
+        ...state,
+        particles: [...state.particles, newParticle],
+      }));
+    },
+    Math.floor(1000 / settings.amount),
+  );
 
   useDocumentBodyListener("mousedown", (e: MouseEvent) => {
     if (canvasRef.current == null) {
@@ -246,7 +250,6 @@ export const Draw = () => {
   });
 
   useDocumentBodyListener("mouseup", function (e) {
-    console.log("mouseup");
     // If we released the left mouse button, stop drawing and finish the line
     if (e.which === MouseConstants.MOUSE_LEFT) {
       mouse.current = null;
@@ -268,7 +271,7 @@ export const Draw = () => {
         document.body.dispatchEvent(mouseEvent);
       }
     },
-    { passive: false }
+    { passive: false },
   );
   useDocumentBodyListener(
     "touchmove",
@@ -286,7 +289,7 @@ export const Draw = () => {
         document.body.dispatchEvent(mouseEvent);
       }
     },
-    { passive: false }
+    { passive: false },
   );
   useDocumentBodyListener(
     "touchend",
@@ -300,120 +303,132 @@ export const Draw = () => {
         document.body.dispatchEvent(mouseEvent);
       }
     },
-    { passive: false }
+    { passive: false },
   );
 
   return (
     <div className="w-full flex flex-col items-center gap-6">
       <Canvas ref={canvasRef} />
-      <div className="flex flex-row gap-2 items-center">
-        Colour
-        <ColourSetting
-          settings={settings}
-          setSettings={setSettings}
-          property="colour"
-          value="blue"
-          className="bg-blue-500"
+      <div className="grid gap-x-4 items-center grid-cols-2 gap-y-8 w-full">
+        <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+          Colour
+        </h4>
+        <div className="flex flex-row gap-2 items-center col-start-1 col-span-2">
+          <ColourSetting
+            settings={settings}
+            setSettings={setSettings}
+            property="colour"
+            value="blue"
+            className="bg-blue-500"
+          />
+          <ColourSetting
+            settings={settings}
+            setSettings={setSettings}
+            property="colour"
+            value="red"
+            className="bg-red-500"
+          />
+          <ColourSetting
+            settings={settings}
+            setSettings={setSettings}
+            property="colour"
+            value="green"
+            className="bg-green-500"
+          />
+          <ColourSetting
+            settings={settings}
+            setSettings={setSettings}
+            property="colour"
+            value="rainbow"
+            className="bg-gradient-to-r from-purple-300 via-green-300 to-yellow-300"
+          />
+          <ColourSetting
+            settings={settings}
+            setSettings={setSettings}
+            property="colour"
+            value="rainbow-light"
+            className="bg-gradient-to-r from-blue-200 via-pink-200 to-green-200"
+          />
+        </div>
+        <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+          Gravity ({settings.gravity})
+        </h4>
+        <Slider
+          className="w-full"
+          value={[settings.gravity]}
+          onValueChange={(value) =>
+            setSettings({ ...settings, gravity: value[0] })
+          }
+          max={0.1}
+          min={0}
+          step={0.01}
         />
-        <ColourSetting
-          settings={settings}
-          setSettings={setSettings}
-          property="colour"
-          value="red"
-          className="bg-red-500"
+        <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+          Lifetime ({settings.lifetime})
+        </h4>
+        <Slider
+          className="w-full"
+          value={[settings.lifetime]}
+          onValueChange={(value) =>
+            setSettings({ ...settings, lifetime: value[0] })
+          }
+          max={10}
+          min={2}
+          step={1}
         />
-        <ColourSetting
-          settings={settings}
-          setSettings={setSettings}
-          property="colour"
-          value="green"
-          className="bg-green-500"
+        <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+          Spread ({settings.spread})
+        </h4>
+        <Slider
+          className="w-full"
+          value={[settings.spread]}
+          onValueChange={(value) =>
+            setSettings({ ...settings, spread: value[0] })
+          }
+          max={3}
+          min={0.3}
+          step={0.1}
         />
-        <ColourSetting
-          settings={settings}
-          setSettings={setSettings}
-          property="colour"
-          value="rainbow"
-          className="bg-gradient-to-r from-purple-300 via-green-300 to-yellow-300"
+        <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+          Amount ({settings.amount})
+        </h4>
+        <Slider
+          className="w-full"
+          value={[settings.amount]}
+          onValueChange={(value) =>
+            setSettings({ ...settings, amount: value[0] })
+          }
+          max={1000}
+          min={10}
+          step={50}
         />
-        <ColourSetting
-          settings={settings}
-          setSettings={setSettings}
-          property="colour"
-          value="rainbow-light"
-          className="bg-gradient-to-r from-blue-200 via-pink-200 to-green-200"
+        <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+          Size ({settings.size})
+        </h4>
+        <Slider
+          className="w-full"
+          value={[settings.size]}
+          onValueChange={(value) =>
+            setSettings({ ...settings, size: value[0] })
+          }
+          max={10}
+          min={1}
         />
       </div>
       <div className="flex flex-row gap-2 items-center">
-        Gravity
-        <Button disabled={settings.gravity === 0} onClick={() => setSettings({ ...settings, gravity: 0 })}>
-          0
-        </Button>
-        <Button disabled={settings.gravity === 0.03} onClick={() => setSettings({ ...settings, gravity: 0.03 })}>
-          0.03
-        </Button>
-        <Button disabled={settings.gravity === 0.1} onClick={() => setSettings({ ...settings, gravity: 0.1 })}>
-          0.1
-        </Button>
-      </div>
-      <div className="flex flex-row gap-2 items-center">
-        Lifetime
-        <Button disabled={settings.lifetime === 2} onClick={() => setSettings({ ...settings, lifetime: 2 })}>
-          2
-        </Button>
-        <Button disabled={settings.lifetime === 5} onClick={() => setSettings({ ...settings, lifetime: 5 })}>
-          5
-        </Button>
-        <Button disabled={settings.lifetime === 10} onClick={() => setSettings({ ...settings, lifetime: 10 })}>
-          10
-        </Button>
-      </div>
-      <div className="flex flex-row gap-2 items-center">
-        Spread
-        <Button disabled={settings.spread === 0.3} onClick={() => setSettings({ ...settings, spread: 0.3 })}>
-          0.3
-        </Button>
-        <Button disabled={settings.spread === 1} onClick={() => setSettings({ ...settings, spread: 1 })}>
-          1
-        </Button>
-        <Button disabled={settings.spread === 3} onClick={() => setSettings({ ...settings, spread: 3 })}>
-          3
-        </Button>
-      </div>
-      <div className="flex flex-row gap-2 items-center">
-        Amount
-        <Button disabled={settings.amount === 30} onClick={() => setSettings({ ...settings, amount: 30 })}>
-          30
-        </Button>
-        <Button disabled={settings.amount === 100} onClick={() => setSettings({ ...settings, amount: 100 })}>
-          100
-        </Button>
-        <Button disabled={settings.amount === 1000} onClick={() => setSettings({ ...settings, amount: 1000 })}>
-          1000
-        </Button>
-      </div>
-      <div className="flex flex-row gap-2 items-center">
-        Size
-        <Button disabled={settings.size === 1} onClick={() => setSettings({ ...settings, size: 1 })}>
-          1
-        </Button>
-        <Button disabled={settings.size === 3} onClick={() => setSettings({ ...settings, size: 3 })}>
-          3
-        </Button>
-        <Button disabled={settings.size === 10} onClick={() => setSettings({ ...settings, size: 10 })}>
-          10
-        </Button>
-      </div>
-      <div className="flex flex-row gap-2 items-center">
-        <Button 
+        <Button
           onClick={() => {
             const randomSettings: Settings = {
               amount: [30, 100, 1000][Math.floor(Math.random() * 3)] as Amount,
-              colour: ['red', 'green', 'blue', 'rainbow'][Math.floor(Math.random() * 4)] as ColourSetting,
-              gravity: [0, 0.03, 0.1][Math.floor(Math.random() * 3)] as GravitySetting,
+              colour: ["red", "green", "blue", "rainbow"][
+                Math.floor(Math.random() * 4)
+              ] as ColourSetting,
+              gravity: [0, 0.03, 0.1][
+                Math.floor(Math.random() * 3)
+              ] as GravitySetting,
               lifetime: [2, 5, 10][Math.floor(Math.random() * 3)] as Lifetime,
               size: [1, 3, 10][Math.floor(Math.random() * 3)] as Size,
-              spread: [0.3, 1, 3][Math.floor(Math.random() * 3)] as Spread
+              spread: [0.3, 1, 3][Math.floor(Math.random() * 3)] as Spread,
             };
             setSettings(randomSettings);
           }}
@@ -429,7 +444,7 @@ const useDocumentBodyListener = (
   event: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   callback: (arg: any) => void,
-  options: AddEventListenerOptions = {}
+  options: AddEventListenerOptions = {},
 ) => {
   // Store the latest callback in a ref, so we do not bind a stale callback to the current closure.
   const callbackRef = React.useRef<(arg: Event) => void>(() => {});
@@ -469,7 +484,9 @@ const ColourSetting = <T extends keyof Settings>({
     <Button
       className={
         className +
-        (settings[property] === value ? " outline-solid outline-2 outline-offset-2 outline-white" : "")
+        (settings[property] === value
+          ? " outline-solid outline-2 outline-offset-2 outline-white"
+          : "")
       }
       onClick={() => setSettings({ ...settings, [property]: value })}
     >
