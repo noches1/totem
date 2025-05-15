@@ -90,6 +90,49 @@ type Colour = {
   b: number;
 };
 
+const RED = {
+  r: 255,
+  g: 0,
+  b: 0
+} satisfies Colour
+
+const BLUE = {
+  r: 0,
+  g: 0,
+  b: 255
+} satisfies Colour
+
+const GREEN = {
+  r: 0,
+  g: 255,
+  b: 0
+} satisfies Colour
+
+const YELLOW = {
+  r: 255,
+  g: 255,
+  b: 0
+} satisfies Colour
+
+const VIOLET = {
+  r: 148,
+  g: 0,
+  b: 211
+} satisfies Colour
+
+const INDIGO = {
+  r: 75,
+  g: 0,
+  b: 130
+} satisfies Colour
+
+const ORANGE = {
+  r: 255,
+  g: 127,
+  b: 0
+} satisfies Colour
+
+
 const COLOUR_RANDOMNESS = 200;
 
 const clamp = (value: number) => {
@@ -102,7 +145,8 @@ type ColourSetting =
   | "blue"
   | "rainbow"
   | "rainbow-light"
-  | "animated";
+  | "animated"
+  | "animated-rainbow";
 type GravitySetting = number;
 type Lifetime = number;
 type Spread = number;
@@ -191,7 +235,15 @@ function interpolateValues(values: number[], t: number): number {
   return values[idx] * (1 - frac) + values[idx + 1] * frac;
 }
 
-const ANIMATED_COLOUR_FRAMES = 600; // cycles through all the colours within x frames
+function getAnimatedColour(colours:Colour[], progress: number) {
+  return {
+    r: interpolateValues(colours.map(colour => colour.r), progress),
+    g: interpolateValues(colours.map(colour => colour.g), progress),
+    b: interpolateValues(colours.map(colour => colour.b), progress),
+  }
+}
+
+const ANIMATED_COLOUR_FRAMES = 1200; // cycles through all the colours within x frames
 const colourFromSetting = (setting: ColourSetting, currentFrame: number) => {
   const progress = currentFrame / ANIMATED_COLOUR_FRAMES;
   switch (setting) {
@@ -206,17 +258,17 @@ const colourFromSetting = (setting: ColourSetting, currentFrame: number) => {
     case "rainbow-light":
       return { r: 175, g: 200, b: 200 };
     case "animated":
-      return {
-        r: interpolateValues([255, 0, 0, 255], progress),
-        g: interpolateValues([0, 255, 0, 0], progress),
-        b: interpolateValues([0, 0, 255, 0], progress),
-      };
+      return getAnimatedColour([RED, BLUE, RED], progress);
+    case "animated-rainbow":
+    return getAnimatedColour([RED, ORANGE, YELLOW, GREEN, BLUE, INDIGO, VIOLET, RED], progress)
   }
 };
 
 const randomnessFromSetting = (setting: ColourSetting) => {
   switch (setting) {
     case "animated":
+      return 100;
+    case "animated-rainbow":
       return 100;
     default:
       return COLOUR_RANDOMNESS;
@@ -480,7 +532,14 @@ export const Draw = () => {
             setSettings={setSettings}
             property="colour"
             value="animated"
-            className="bg-gradient-to-r from-red-500 via-green-500 to-blue-500"
+            className="bg-gradient-to-r from-red-500 via-blue-500 to-red-500"
+          />
+          <ColourSetting
+            settings={settings}
+            setSettings={setSettings}
+            property="colour"
+            value="animated-rainbow"
+            className="bg-conic/decreasing from-violet-700 to-violet-700 via-lime-300"
           />
         </div>
         <h4 className="scroll-m-20 text-md font-medium tracking-tight">
@@ -505,7 +564,7 @@ export const Draw = () => {
           onValueChange={(value) =>
             setSettings({ ...settings, lifetime: value[0] })
           }
-          max={10}
+          max={100}
           min={2}
           step={1}
         />
@@ -519,7 +578,7 @@ export const Draw = () => {
             setSettings({ ...settings, spread: value[0] })
           }
           max={3}
-          min={0.3}
+          min={0}
           step={0.1}
         />
         <h4 className="scroll-m-20 text-md font-medium tracking-tight">
