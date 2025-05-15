@@ -150,10 +150,7 @@ class PokerscopeRenderer:
 
     def render_text(self, text, x, y, colour, size="md"):
         font = self.text_fonts.get(size, self.text_fonts["md"])
-        graphics.DrawText(self.canvas, font, x, y, colour, text)
-        width = graphics.DrawText(
-            self.canvas, font, x, y + self.canvas.height // 2, colour, text
-        )
+        width = graphics.DrawText(self.canvas, font, x, y, colour, text)
         return (width, font.height)
 
     def render_hole_cards(self, cards, x, y):
@@ -184,25 +181,9 @@ class PokerscopeRenderer:
         )
         graphics.DrawText(
             self.canvas,
-            self.rank_font,
-            x + rank_padding,
-            y + self.canvas.height // 2,
-            colours[suit],
-            rank,
-        )
-        graphics.DrawText(
-            self.canvas,
             self.suit_font,
             x + suit_padding,
             y + self.rank_font.height,
-            colours[suit],
-            suits[suit],
-        )
-        graphics.DrawText(
-            self.canvas,
-            self.suit_font,
-            x + suit_padding,
-            y + self.rank_font.height + self.canvas.height // 2,
             colours[suit],
             suits[suit],
         )

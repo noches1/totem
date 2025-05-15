@@ -312,7 +312,6 @@ class Picture(Matrix):
             self.thread.start()
         elif file.split(".")[-1] == "png":
             image = Image.open(f"{file}")
-            image = self.double(image)
             self.matrix.SetImage(image.convert("RGB"))
         elif file.split(".")[-1] == "gif":
             gif = Image.open(f"{file}")
@@ -324,8 +323,6 @@ class Picture(Matrix):
                 duration = gif.info["duration"]
                 durations.append(duration)
                 frame = gif.copy()
-                frame = self.double(frame)
-                frame.thumbnail((self.matrix.width, self.matrix.height), Image.LANCZOS)
                 if frame_index >= len(self.canvases):
                     self.canvases.append(self.matrix.CreateFrameCanvas())
                 self.canvases[frame_index].SetImage(frame.convert("RGB"))
@@ -345,7 +342,7 @@ class Picture(Matrix):
             self.thread.start()
 
     def gif(self, frames, num_frames, durations):
-        cur_frame = 1  # TODO why does frame 0 glitch?
+        cur_frame = 0
         while True:
             if IS_DEV:
                 self.matrix.SwapOnVSync(frames[cur_frame])
@@ -356,14 +353,14 @@ class Picture(Matrix):
                     framerate_fraction=max(durations[cur_frame] // 6.25, 1),
                 )
             if cur_frame == num_frames - 1:
-                cur_frame = 1
+                cur_frame = 0
             else:
                 cur_frame += 1
             if self.thread.stopped():
                 break
 
     def gif_n(self, frames, num_frames, iters, framerate, durations):
-        cur_frame = 1
+        cur_frame = 0
         i = 0
         while i < iters:
             if IS_DEV:
@@ -375,7 +372,7 @@ class Picture(Matrix):
                     framerate_fraction=max(durations[cur_frame] // 6.25, 1),
                 )
             if cur_frame == num_frames - 1:
-                cur_frame = 1
+                cur_frame = 0
                 i += 1
             else:
                 cur_frame += 1
@@ -399,7 +396,6 @@ class Picture(Matrix):
                 color = RAINBOW_COLORS[(pos // 2) % 20]
             self.canvas.Clear()
             length = graphics.DrawText(self.canvas, font, pos, 32, color, string)
-            length2 = graphics.DrawText(self.canvas, font, pos, 96, color, string)
             pos -= 1
             if pos + length < 0:
                 pos = self.canvas.width
@@ -418,7 +414,6 @@ class Picture(Matrix):
         while True:
             img_name = imgs_to_cycle[img_idx]
             image = Image.open(os.path.join(full_dirname, img_name))
-            image = self.double(image)
             self.matrix.SetImage(image.convert("RGB"))
 
             time.sleep(pause_time)
@@ -457,8 +452,6 @@ class Picture(Matrix):
                 gif.seek(frame_index)
                 durations.append(gif.info["duration"])
                 frame = gif.copy()
-                frame = self.double(frame)
-                frame.thumbnail((self.matrix.width, self.matrix.height), Image.LANCZOS)
                 if frame_index >= len(self.canvases):
                     self.canvases.append(self.matrix.CreateFrameCanvas())
                 self.canvases[frame_index].SetImage(frame.convert("RGB"))
@@ -478,7 +471,6 @@ class Picture(Matrix):
 
         while True:
             image = Image.open(file)
-            image = self.double(image)
             self.matrix.SetImage(image.convert("RGB"))
             time.sleep(5)
 
@@ -527,17 +519,10 @@ class Picture(Matrix):
             if name == "You":
                 graphics.DrawText(self.canvas, font, 19, 20, color, "You")
                 graphics.DrawText(self.canvas, font, 19, 32, color, "are")
-                graphics.DrawText(self.canvas, font, 19, 20 + 64, color, "You")
-                graphics.DrawText(self.canvas, font, 19, 32 + 64, color, "are")
             else:
                 graphics.DrawText(self.canvas, font, 19, 32, color, "is")
-                graphics.DrawText(self.canvas, font, 19, 32 + 64, color, "is")
                 graphics.DrawText(self.canvas, smallfont, 8, 20, color, name)
-                graphics.DrawText(self.canvas, smallfont, 8, 20 + 64, color, name)
             length1 = graphics.DrawText(self.canvas, font, x_pos, 44, color, aff_word)
-            length2 = graphics.DrawText(
-                self.canvas, font, x_pos, 44 + 64, color, aff_word
-            )
 
             # Pause at the halfway point
             if (
@@ -615,27 +600,6 @@ class Picture(Matrix):
                     self.canvas, font, x_positions[2], 50, colors[2], gifs_str
                 ),
             ]
-            # Backside
-            (
-                graphics.DrawText(
-                    self.canvas,
-                    font,
-                    x_positions[0],
-                    14 + 64,
-                    colors[0],
-                    special_commands_str,
-                ),
-            )
-            (
-                graphics.DrawText(
-                    self.canvas, font, x_positions[1], 32 + 64, colors[1], pngs_str
-                ),
-            )
-            (
-                graphics.DrawText(
-                    self.canvas, font, x_positions[2], 50 + 64, colors[2], gifs_str
-                ),
-            )
 
             for i in range(len(x_positions)):
                 x_positions[i] -= 1
