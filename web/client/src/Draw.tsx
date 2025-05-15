@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { Canvas } from "./Canvas";
 import { useInterval } from "./useInterval";
+import { changeCommand } from "./api";
 
 const MouseConstants = {
   INVALID: 0,
@@ -89,6 +90,10 @@ export const Draw = () => {
   const [state, setState] = useState<State>({
     particles: [],
   });
+
+  useEffect(() => {
+    changeCommand('canvas')
+  }, [])
 
   useInterval(() => {
     if (canvasRef.current == null) {

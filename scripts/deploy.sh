@@ -8,6 +8,10 @@ echo "Connected!"
 
 echo "Building client..."
 pnpm --offline --no-update-notifier --filter client build
+if [ $? -ne 0 ]; then
+    echo "Error: TypeScript type checking failed. Aborting deployment."
+    exit 1
+fi
 echo "Client built!"
 
 echo "Zipping archive..."

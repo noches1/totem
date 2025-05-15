@@ -4,16 +4,7 @@ import { Input } from "./components/ui/input";
 import { FlappyBird } from "./FlappyBird";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { Draw } from "./Draw";
-
-const isDev = import.meta.env.MODE === "development";
-const baseUrl = isDev ? "http://localhost" : "http://totem.local";
-
-const changeCommand = async (command: string) => {
-  await fetch(baseUrl + "/api/command", {
-    method: "POST",
-    body: JSON.stringify({ command }),
-  });
-};
+import { baseUrl, changeCommand } from "./api";
 
 interface Command {
   type: "directory" | "file" | "special";

@@ -13,6 +13,15 @@ export const sendCanvas = async (flat: Uint8Array) => {
   });
 };
 
+export const baseUrl = IS_DEV ? "http://localhost" : "http://totem.local";
+
+export const changeCommand = async (command: string) => {
+  await fetch(baseUrl + "/api/command", {
+    method: "POST",
+    body: JSON.stringify({ command }),
+  });
+};
+
 /**
  * @param imgDataData  The ImageData.data Uint8ClampedArray (length = w*h*4)
  * @returns Uint8Array length = w*h, each byte in RGB332 format
@@ -23,10 +32,10 @@ export function encodeRgb332(imgDataData: Uint8ClampedArray): Uint8Array {
 
   for (let i = 0; i < nPixels; i++) {
     const base = i * 4;
-    const r8 = imgDataData[base + 0];
-    const g8 = imgDataData[base + 1];
-    const b8 = imgDataData[base + 2];
-    // ignore alpha
+    const alpha = imgDataData[base + 3]
+    const r8 = Math.floor(imgDataData[base + 0] * alpha / 255)
+    const g8 = Math.floor(imgDataData[base + 1] * alpha / 255)
+    const b8 = Math.floor(imgDataData[base + 2] * alpha / 255)
 
     // quantize down to 3,3,2 bits:
     const r3 = r8 >> 5; // top 3 bits of red
