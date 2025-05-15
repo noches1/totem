@@ -368,7 +368,19 @@ export const Matrix = ({
         }
         if (state === "playing" || state === "dead") {
           ctx.font = "16px sans-serif";
-          ctx.fillStyle = "white"; // Reset fill style for text
+          let colour = "white";
+          if (score < 10) {
+            colour = "white";
+          } else if (score < 20) {
+            colour = "skyblue";
+          } else if (score < 30) {
+            colour = "teal";
+          } else if (score < 40) {
+            colour = "cyan";
+          } else {
+            colour = "red";
+          }
+          ctx.fillStyle = colour;
           ctx.fillText(score.toString(), 4, 16);
         }
         if (state === "dead") {
