@@ -146,6 +146,17 @@ const PRESETS: Preset[] = [
       spread: 0,
     },
   },
+  {
+    name: "Blood Nebula",
+    settings: {
+      colour: "red",
+      amount: 100,
+      gravity: 0,
+      lifetime: 10,
+      spread: 1,
+      size: 10,
+    },
+  },
 ];
 
 /**
