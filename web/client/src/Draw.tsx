@@ -136,6 +136,7 @@ export const Draw = () => {
     }));
   }, PARTICLE_DEBOUNCE);
 
+
   useDocumentBodyListener("mousedown", (e: MouseEvent) => {
     if (canvasRef.current == null) {
       return;
