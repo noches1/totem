@@ -94,12 +94,12 @@ const clamp = (value: number) => {
   return Math.max(0, Math.min(value, 255));
 };
 
-type ColourSetting = 'red' | 'green' | 'blue' | 'rainbow'
-type GravitySetting = 0 | 0.03 | 0.1
-type Lifetime = 2 | 5 | 10
-type Spread = 0.3 | 1 | 3
-type Amount = 30 | 100 | 1000 // particles per second
-type Size = 1 | 3 | 10
+type ColourSetting = 'red' | 'green' | 'blue' | 'rainbow' | 'rainbow-light'
+type GravitySetting = 0 | 0.03 | 0.1;
+type Lifetime = 2 | 5 | 10;
+type Spread = 0.3 | 1 | 3;
+type Amount = 30 | 100 | 1000; // particles per second
+type Size = 1 | 3 | 10;
 type Settings = {
   amount: Amount;
   colour: ColourSetting;
@@ -107,25 +107,39 @@ type Settings = {
   lifetime: Lifetime;
   size: Size;
   spread: Spread;
-}
+};
 
 const colourFromSetting = (setting: ColourSetting) => {
   switch (setting) {
-    case 'blue':
+    case "blue":
       return { r: 50, g: 50, b: 200 };
-    case 'red':
+    case "red":
       return { r: 200, g: 50, b: 50 };
-    case 'green':
+    case "green":
       return { r: 50, g: 200, b: 50 };
-    case 'rainbow':
+    case "rainbow":
       return { r: 125, g: 125, b: 125 };
+    case "rainbow-light":
+      return { r: 255, g: 255, b: 255 };
   }
-}
+};
 
 const getRandomColour = (colour: Colour) => {
-  const r = clamp(Math.floor(colour.r + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2));
-  const g = clamp(Math.floor(colour.g + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2));
-  const b = clamp(Math.floor(colour.b + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2));
+  const r = clamp(
+    Math.floor(
+      colour.r + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2
+    )
+  );
+  const g = clamp(
+    Math.floor(
+      colour.g + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2
+    )
+  );
+  const b = clamp(
+    Math.floor(
+      colour.b + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2
+    )
+  );
   return { r, g, b };
 };
 
@@ -294,18 +308,41 @@ export const Draw = () => {
       <Canvas ref={canvasRef} />
       <div className="flex flex-row gap-2 items-center">
         Colour
-        <Button className="bg-blue-500" disabled={settings.colour === 'blue'} onClick={() => setSettings({ ...settings, colour: 'blue' })}>
-          B
-        </Button>
-        <Button className="bg-red-500" disabled={settings.colour === 'red'} onClick={() => setSettings({ ...settings, colour: 'red' })}>
-          R
-        </Button>
-        <Button className="bg-green-500" disabled={settings.colour === 'green'} onClick={() => setSettings({ ...settings, colour: 'green' })}>
-          G
-        </Button>
-        <Button className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500" disabled={settings.colour === 'rainbow'} onClick={() => setSettings({ ...settings, colour: 'rainbow' })}>
-          ?
-        </Button>
+        <ColourSetting
+          settings={settings}
+          setSettings={setSettings}
+          property="colour"
+          value="blue"
+          className="bg-blue-500"
+        />
+        <ColourSetting
+          settings={settings}
+          setSettings={setSettings}
+          property="colour"
+          value="red"
+          className="bg-red-500"
+        />
+        <ColourSetting
+          settings={settings}
+          setSettings={setSettings}
+          property="colour"
+          value="green"
+          className="bg-green-500"
+        />
+        <ColourSetting
+          settings={settings}
+          setSettings={setSettings}
+          property="colour"
+          value="rainbow"
+          className="bg-gradient-to-r from-purple-300 via-green-300 to-yellow-300"
+        />
+        <ColourSetting
+          settings={settings}
+          setSettings={setSettings}
+          property="colour"
+          value="rainbow-light"
+          className="bg-gradient-to-r from-blue-200 via-pink-200 to-green-200"
+        />
       </div>
       <div className="flex flex-row gap-2 items-center">
         Gravity
@@ -411,4 +448,32 @@ const useDocumentBodyListener = (
     return () =>
       document.body.removeEventListener(event, runEventCallback, options);
   }, [event, options]);
+};
+
+type ColourSettingProps<T extends keyof Settings> = {
+  settings: Settings;
+  property: T;
+  setSettings: React.Dispatch<React.SetStateAction<Settings>>;
+  value: Settings[T];
+  className: string;
+};
+
+const ColourSetting = <T extends keyof Settings>({
+  settings,
+  setSettings,
+  property,
+  value,
+  className,
+}: ColourSettingProps<T>) => {
+  return (
+    <Button
+      className={
+        className +
+        (settings[property] === value ? " outline-solid outline-2 outline-offset-2 outline-white" : "")
+      }
+      onClick={() => setSettings({ ...settings, [property]: value })}
+    >
+      &nbsp;
+    </Button>
+  );
 };
