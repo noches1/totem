@@ -157,6 +157,17 @@ const PRESETS: Preset[] = [
       size: 10,
     },
   },
+  {
+    name: "Icy Rose Cascade",
+    settings: {
+      colour: "blue",
+      amount: 1000,
+      gravity: 0.03,
+      lifetime: 5,
+      spread: 1,
+      size: 3,
+    },
+  },
 ];
 
 /**
