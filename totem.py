@@ -2,6 +2,7 @@
 
 import dbus
 import threading
+import zlib
 
 from canvas import art_canvas
 from pathlib import Path
@@ -126,9 +127,7 @@ def start_flask_app():
 
     @flask_app.route("/api/canvas", methods=["POST"])
     def canvas():
-        blob = request.get_data()
-        if len(blob) != 64 * 64:
-            return jsonify({"error": "expected exactly 4096 bytes"}), 400
+        blob = zlib.decompress(request.get_data())
         grid = [list(blob[row * 64 : (row + 1) * 64]) for row in range(64)]
         art_canvas.update(grid)
         return jsonify({"status": "ok"})
