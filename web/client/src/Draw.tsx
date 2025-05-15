@@ -6,7 +6,6 @@ import { changeCommand } from "./api";
 import { Button } from "./components/ui/button";
 import { Slider } from "./components/ui/slider";
 import { cn } from "./lib/utils";
-import { PresentationIcon } from "lucide-react";
 
 const MouseConstants = {
   INVALID: 0,
@@ -481,7 +480,7 @@ export const Draw = () => {
             setSettings={setSettings}
             property="colour"
             value="animated"
-            className="bg-gradient-to-r from-blue-200 via-pink-200 to-green-200"
+            className="bg-gradient-to-r from-red-500 via-green-500 to-blue-500"
           />
         </div>
         <h4 className="scroll-m-20 text-md font-medium tracking-tight">
@@ -596,14 +595,12 @@ const ColourSetting = <T extends keyof Settings>({
   return (
     <Button
       className={cn(
-        "rounded-full",
+        "rounded-full size-8 aspect-square",
         settings[property] === value &&
-          "outline-solid outline-2 outline-offset-2 outline-white",
+          "outline-solid outline-2 outline-offset-2 outline-primary",
         className,
       )}
       onClick={() => setSettings({ ...settings, [property]: value })}
-    >
-      &nbsp;
-    </Button>
+    />
   );
 };
