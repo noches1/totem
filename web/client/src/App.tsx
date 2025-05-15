@@ -3,6 +3,7 @@ import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { FlappyBird } from "./FlappyBird";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
+import { Draw } from "./Draw";
 
 const isDev = import.meta.env.MODE === "development";
 const baseUrl = isDev ? "http://localhost" : "http://totem.local";
@@ -28,15 +29,17 @@ const filenameToCommand = (filename: string) => {
 };
 
 function App() {
+  const showDraw = window.location.search.includes("draw");
   return (
     <div className="flex flex-col items-center gap-2 p-4">
       <h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">
         Totem
       </h3>
       <div className="flex gap-2 mb-2 w-full">
-        <Tabs className="w-full" defaultValue="commands">
-          <TabsList className="mx-auto">
-            <TabsTrigger value="commands">Commands</TabsTrigger>
+        {!showDraw && (
+          <Tabs className="w-full" defaultValue="commands">
+            <TabsList className="mx-auto">
+              <TabsTrigger value="commands">Commands</TabsTrigger>
             <TabsTrigger
               onClick={() => changeCommand("canvas")}
               value="flappybird"
@@ -50,8 +53,10 @@ function App() {
           </TabsContent>
           <TabsContent value="flappybird">
             <FlappyBird />
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+          </Tabs>
+        )}
+        {showDraw && <Draw />}
       </div>
     </div>
   );

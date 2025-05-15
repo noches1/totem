@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { sendCanvas } from "./api";
-import { useInterval } from "./useInterval";
+import { Canvas } from "./Canvas";
 
-const isDev = import.meta.env.MODE === "development";
 export type Pixel = [number, number, number];
 type Matrix = Pixel[][];
 
@@ -329,33 +327,6 @@ export const FlappyBird = () => {
   );
 };
 
-/**
- * @param imgDataData  The ImageData.data Uint8ClampedArray (length = w*h*4)
- * @returns Uint8Array length = w*h, each byte in RGB332 format
- */
-function encodeRgb332(imgDataData: Uint8ClampedArray): Uint8Array {
-  const nPixels = imgDataData.length / 4;
-  const out = new Uint8Array(nPixels);
-
-  for (let i = 0; i < nPixels; i++) {
-    const base = i * 4;
-    const r8 = imgDataData[base + 0];
-    const g8 = imgDataData[base + 1];
-    const b8 = imgDataData[base + 2];
-    // ignore alpha
-
-    // quantize down to 3,3,2 bits:
-    const r3 = r8 >> 5; // top 3 bits of red
-    const g3 = g8 >> 5; // top 3 bits of green
-    const b2 = b8 >> 6; // top 2 bits of blue
-
-    // pack into one byte: RRR GGG BB
-    out[i] = (r3 << 5) | (g3 << 2) | b2;
-  }
-
-  return out;
-}
-
 export const Matrix = ({
   score,
   state,
@@ -412,33 +383,5 @@ export const Matrix = ({
       }
     }
   }, [matrix, score, state]);
-  useInterval(
-    () => {
-      if (canvasRef.current == null) {
-        return;
-      }
-
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-      if (ctx == null) {
-        return;
-      }
-      const imgData = ctx.getImageData(0, 0, W, H);
-      const flat = imgData.data;
-      const rgb332 = encodeRgb332(flat);
-      if (!isDev) {
-        sendCanvas(rgb332);
-      }
-    },
-    Math.round(1000 / 10),
-  );
-  return (
-    <canvas
-      width={64}
-      height={64}
-      className="aspect-square border-1 border-white"
-      ref={canvasRef}
-      style={{ imageRendering: "pixelated" }}
-    ></canvas>
-  );
+  return <Canvas ref={canvasRef} />;
 };
