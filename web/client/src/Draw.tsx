@@ -121,7 +121,7 @@ const colourFromSetting = (setting: ColourSetting) => {
     case "rainbow":
       return { r: 125, g: 125, b: 125 };
     case "rainbow-light":
-      return { r: 255, g: 255, b: 255 };
+      return { r: 175, g: 200, b: 200 };
   }
 };
 
@@ -340,7 +340,7 @@ export const Draw = () => {
             setSettings={setSettings}
             property="colour"
             value="rainbow"
-            className="bg-gradient-to-r from-purple-300 via-green-300 to-yellow-300"
+            className="bg-gradient-to-r from-purple-400 via-green-400 to-red-400"
           />
           <ColourSetting
             settings={settings}
