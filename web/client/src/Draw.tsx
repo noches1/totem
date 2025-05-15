@@ -6,6 +6,7 @@ import { changeCommand } from "./api";
 import { Button } from "./components/ui/button";
 import { Slider } from "./components/ui/slider";
 import { cn } from "./lib/utils";
+import { PresentationIcon } from "lucide-react";
 
 const MouseConstants = {
   INVALID: 0,
@@ -126,8 +127,8 @@ const PRESETS: Preset[] = [
   {
     name: "Default",
     settings: {
-      amount: 10,
-      colour: "red",
+      amount: 100,
+      colour: "blue",
       gravity: 0.03,
       lifetime: 10,
       size: 3,
@@ -223,14 +224,7 @@ export const Draw = () => {
   const [state, setState] = useState<State>({
     particles: [],
   });
-  const [settings, setSettings] = useState<Settings>({
-    amount: 100,
-    colour: "blue",
-    gravity: 0.03,
-    lifetime: 10,
-    size: 3,
-    spread: 1,
-  });
+  const [settings, setSettings] = useState<Settings>(PRESETS[0].settings);
 
   useEffect(() => {
     changeCommand("canvas");
