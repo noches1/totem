@@ -118,7 +118,7 @@ interface Preset {
 
 const PRESETS: Preset[] = [
   {
-    name: "Hello",
+    name: "Default",
     settings: {
       amount: 10,
       colour: "red",
@@ -128,6 +128,17 @@ const PRESETS: Preset[] = [
       spread: 1,
     },
   },
+  {
+    name: "Sketch",
+   settings: {
+    amount: 100,
+    colour: "rainbow-light",
+    gravity: 0,
+    lifetime: 100,
+    size: 2,
+    spread: 0,
+  },
+}
 ];
 
 const colourFromSetting = (setting: ColourSetting) => {
@@ -355,7 +366,7 @@ export const Draw = () => {
             setSettings(randomSettings);
           }}
         >
-          Randomise All Settings
+          I'm feeling lucky
         </Button>
       </div>
       <div className="grid gap-x-4 items-center grid-cols-2 gap-y-2 w-full">
@@ -425,7 +436,7 @@ export const Draw = () => {
           min={2}
           step={1}
         />
-        <h4 className="scroll-m-20 text-xl font-medium text-md tracking-tight">
+        <h4 className="scroll-m-20 text-md font-medium text-md tracking-tight">
           Spread ({settings.spread})
         </h4>
         <Slider
