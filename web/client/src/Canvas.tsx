@@ -32,7 +32,7 @@ export const Canvas = React.forwardRef((_, ref: React.RefObject<HTMLCanvasElemen
     <canvas
       width={64}
       height={64}
-      className="aspect-square border-1 border-white"
+      className="aspect-square border-1 border-white w-full"
       ref={ref}
       style={{ imageRendering: "pixelated" }}
     ></canvas>
