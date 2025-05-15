@@ -96,7 +96,13 @@ const clamp = (value: number) => {
   return Math.max(0, Math.min(value, 255));
 };
 
-type ColourSetting = "red" | "green" | "blue" | "rainbow" | "rainbow-light";
+type ColourSetting =
+  | "red"
+  | "green"
+  | "blue"
+  | "rainbow"
+  | "rainbow-light"
+  | "animated";
 type GravitySetting = number;
 type Lifetime = number;
 type Spread = number;
@@ -130,18 +136,42 @@ const PRESETS: Preset[] = [
   },
   {
     name: "Sketch",
-   settings: {
-    amount: 100,
-    colour: "rainbow-light",
-    gravity: 0,
-    lifetime: 100,
-    size: 2,
-    spread: 0,
+    settings: {
+      amount: 100,
+      colour: "rainbow-light",
+      gravity: 0,
+      lifetime: 100,
+      size: 2,
+      spread: 0,
+    },
   },
-}
 ];
 
-const colourFromSetting = (setting: ColourSetting) => {
+/**
+ * Linearly interpolate across an array of values.
+ *
+ * @param values  – array of numbers [v0, v1, …, vN]
+ * @param t       – interpolation position, in [0..1]
+ * @returns       – the interpolated number
+ */
+function interpolateValues(values: number[], t: number): number {
+  const n = values.length;
+  if (n === 0) throw new Error("Need at least one value to interpolate");
+  if (n === 1) return values[0];
+
+  // Clamp t to [0,1]
+  const tt = Math.min(1, Math.max(0, t));
+  // Scale into [0 .. n-1]
+  const scaled = tt * (n - 1);
+  const idx = Math.min(Math.floor(scaled), n - 2);
+  const frac = scaled - idx;
+
+  return values[idx] * (1 - frac) + values[idx + 1] * frac;
+}
+
+const ANIMATED_COLOUR_FRAMES = 600; // cycles through all the colours within x frames
+const colourFromSetting = (setting: ColourSetting, currentFrame: number) => {
+  const progress = currentFrame / ANIMATED_COLOUR_FRAMES;
   switch (setting) {
     case "blue":
       return { r: 50, g: 50, b: 200 };
@@ -153,24 +183,36 @@ const colourFromSetting = (setting: ColourSetting) => {
       return { r: 125, g: 125, b: 125 };
     case "rainbow-light":
       return { r: 175, g: 200, b: 200 };
+    case "animated":
+      return {
+        r: interpolateValues([255, 0, 0, 255], progress),
+        g: interpolateValues([0, 255, 0, 0], progress),
+        b: interpolateValues([0, 0, 255, 0], progress),
+      };
   }
 };
 
-const getRandomColour = (colour: Colour) => {
+const randomnessFromSetting = (setting: ColourSetting) => {
+  switch (setting) {
+    case "animated":
+      return 100;
+    default:
+      return COLOUR_RANDOMNESS;
+  }
+};
+
+const getRandomColour = (
+  colour: Colour,
+  randomness: number = COLOUR_RANDOMNESS,
+) => {
   const r = clamp(
-    Math.floor(
-      colour.r + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2,
-    ),
+    Math.floor(colour.r + Math.random() * randomness - randomness / 2),
   );
   const g = clamp(
-    Math.floor(
-      colour.g + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2,
-    ),
+    Math.floor(colour.g + Math.random() * randomness - randomness / 2),
   );
   const b = clamp(
-    Math.floor(
-      colour.b + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2,
-    ),
+    Math.floor(colour.b + Math.random() * randomness - randomness / 2),
   );
   return { r, g, b };
 };
@@ -220,17 +262,26 @@ export const Draw = () => {
     });
   }, 1000 / 60);
 
+  const frame = useRef(0);
+
   // particle spawning
   useInterval(
     () => {
       if (canvasRef.current == null) {
         return;
       }
+      frame.current += 1;
+      if (frame.current >= ANIMATED_COLOUR_FRAMES) {
+        frame.current = 0;
+      }
       if (!mouse.current) {
         return;
       }
       // create a particle and send it in a random direction
-      const newColour = getRandomColour(colourFromSetting(settings.colour));
+      const newColour = getRandomColour(
+        colourFromSetting(settings.colour, frame.current),
+        randomnessFromSetting(settings.colour),
+      );
       const newParticle = {
         px: mouse.current!.x,
         py: mouse.current!.y,
@@ -407,6 +458,13 @@ export const Draw = () => {
             setSettings={setSettings}
             property="colour"
             value="rainbow-light"
+            className="bg-gradient-to-r from-blue-200 via-pink-200 to-green-200"
+          />
+          <ColourSetting
+            settings={settings}
+            setSettings={setSettings}
+            property="colour"
+            value="animated"
             className="bg-gradient-to-r from-blue-200 via-pink-200 to-green-200"
           />
         </div>
