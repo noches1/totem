@@ -1,9 +1,9 @@
-
 import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import { Canvas } from "./Canvas";
 import { useInterval } from "./useInterval";
 import { changeCommand } from "./api";
+import { Button } from "./components/ui/button";
 
 const MouseConstants = {
   INVALID: 0,
@@ -25,23 +25,23 @@ type State = {
   particles: Particle[];
 };
 
-const INITIAL_VELOCITY = 1;
-
-const getNextParticle = (particle: Particle) => {
+const getNextParticle = (particle: Particle, settings: Settings) => {
   return {
     ...particle,
     px: particle.px + particle.vx,
     py: particle.py + particle.vy,
     // gravity
-    vy: particle.vy + 0.03,
-    lifetime: particle.lifetime - 1,
+    vy: particle.vy + settings.gravity,
+    lifetime: Math.max(0, particle.lifetime - (10 / settings.lifetime)),
   };
 };
 
-const getNextFrame = (state: State) => {
+const getNextFrame = (state: State, settings: Settings) => {
   return {
     ...state,
-    particles: state.particles.filter((p) => p.lifetime > 0).map((p) => getNextParticle(p)),
+    particles: state.particles
+      .filter((p) => p.lifetime > 0)
+      .map((p) => getNextParticle(p, settings)),
   };
 };
 
@@ -82,25 +82,77 @@ function getMouse(e: MouseEvent, canvas: HTMLCanvasElement) {
   return { x, y };
 }
 
-const PARTICLE_DEBOUNCE = 30
-const PARTICLE_SIZE = 3
+type Colour = {
+  r: number;
+  g: number;
+  b: number;
+};
+
+const COLOUR_RANDOMNESS = 200;
+
+const clamp = (value: number) => {
+  return Math.max(0, Math.min(value, 255));
+};
+
+type ColourSetting = 'red' | 'green' | 'blue' | 'rainbow'
+type GravitySetting = 0 | 0.03 | 0.1
+type Lifetime = 2 | 5 | 10
+type Spread = 0.3 | 1 | 3
+type Amount = 30 | 100 | 1000 // particles per second
+type Size = 1 | 3 | 10
+type Settings = {
+  amount: Amount;
+  colour: ColourSetting;
+  gravity: GravitySetting;
+  lifetime: Lifetime;
+  size: Size;
+  spread: Spread;
+}
+
+const colourFromSetting = (setting: ColourSetting) => {
+  switch (setting) {
+    case 'blue':
+      return { r: 50, g: 50, b: 200 };
+    case 'red':
+      return { r: 200, g: 50, b: 50 };
+    case 'green':
+      return { r: 50, g: 200, b: 50 };
+    case 'rainbow':
+      return { r: 125, g: 125, b: 125 };
+  }
+}
+
+const getRandomColour = (colour: Colour) => {
+  const r = clamp(Math.floor(colour.r + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2));
+  const g = clamp(Math.floor(colour.g + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2));
+  const b = clamp(Math.floor(colour.b + Math.random() * COLOUR_RANDOMNESS - COLOUR_RANDOMNESS / 2));
+  return { r, g, b };
+};
 
 export const Draw = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const mouse = useRef<{x: number, y: number} | null>(null);
+  const mouse = useRef<{ x: number; y: number } | null>(null);
   const [state, setState] = useState<State>({
     particles: [],
   });
+  const [settings, setSettings] = useState<Settings>({
+    amount: 100,
+    colour: 'blue',
+    gravity: 0.03,
+    lifetime: 10,
+    size: 3,
+    spread: 1,
+  });
 
   useEffect(() => {
-    changeCommand('canvas')
-  }, [])
+    changeCommand("canvas");
+  }, []);
 
   useInterval(() => {
     if (canvasRef.current == null) {
       return;
     }
-    setState((state) => getNextFrame(state));
+    setState((state) => getNextFrame(state, settings));
     const drawCtx = canvasRef.current.getContext("2d");
     if (drawCtx == null) {
       return;
@@ -110,7 +162,13 @@ export const Draw = () => {
       drawCtx.beginPath();
       drawCtx.globalAlpha = p.lifetime / 100;
       drawCtx.fillStyle = p.color;
-      drawCtx.arc(p.px, p.py, p.lifetime / 100 * PARTICLE_SIZE, 0, Math.PI * 2);
+      drawCtx.arc(
+        p.px,
+        p.py,
+        ((p.lifetime / 100)) * settings.size,
+        0,
+        Math.PI * 2
+      );
       drawCtx.fill();
       drawCtx.closePath();
     });
@@ -122,26 +180,23 @@ export const Draw = () => {
       return;
     }
     if (!mouse.current) {
-      return
+      return;
     }
     // create a particle and send it in a random direction
+    const newColour = getRandomColour(colourFromSetting(settings.colour));
+    const newParticle = {
+      px: mouse.current!.x,
+      py: mouse.current!.y,
+      vx: Math.random() * settings.spread - settings.spread / 2,
+      vy: Math.random() * settings.spread - settings.spread / 2,
+      lifetime: 100,
+      color: `rgb(${newColour.r}, ${newColour.g}, ${newColour.b})`,
+    };
     setState((state) => ({
       ...state,
-      particles: [
-        ...state.particles,
-        {
-          px: mouse.current!.x,
-          py: mouse.current!.y,
-          vx: Math.random() * INITIAL_VELOCITY - INITIAL_VELOCITY / 2,
-          vy: Math.random() * INITIAL_VELOCITY - INITIAL_VELOCITY / 2,
-          lifetime: 100,
-          // random shade of blue
-          color: `rgb(${Math.floor(50 + Math.random()*200)}, ${50 + Math.floor(Math.random()*200)}, 150)`,
-        },
-      ],
+      particles: [...state.particles, newParticle],
     }));
-  }, PARTICLE_DEBOUNCE);
-
+  }, Math.floor(1000 / settings.amount));
 
   useDocumentBodyListener("mousedown", (e: MouseEvent) => {
     if (canvasRef.current == null) {
@@ -171,12 +226,15 @@ export const Draw = () => {
       return;
     }
     // If we started drawing within the canvas, draw the next part of the line
+    if (mouse.current) {
       mouse.current = getMouse(e, canvasRef.current);
+    }
   });
 
   useDocumentBodyListener("mouseup", function (e) {
+    console.log("mouseup");
     // If we released the left mouse button, stop drawing and finish the line
-    if (mouse.current && e.which === MouseConstants.MOUSE_LEFT) {
+    if (e.which === MouseConstants.MOUSE_LEFT) {
       mouse.current = null;
     }
   });
@@ -231,7 +289,103 @@ export const Draw = () => {
     { passive: false }
   );
 
-  return <Canvas ref={canvasRef} />;
+  return (
+    <div className="w-full flex flex-col items-center gap-6">
+      <Canvas ref={canvasRef} />
+      <div className="flex flex-row gap-2 items-center">
+        Colour
+        <Button className="bg-blue-500" disabled={settings.colour === 'blue'} onClick={() => setSettings({ ...settings, colour: 'blue' })}>
+          B
+        </Button>
+        <Button className="bg-red-500" disabled={settings.colour === 'red'} onClick={() => setSettings({ ...settings, colour: 'red' })}>
+          R
+        </Button>
+        <Button className="bg-green-500" disabled={settings.colour === 'green'} onClick={() => setSettings({ ...settings, colour: 'green' })}>
+          G
+        </Button>
+        <Button className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500" disabled={settings.colour === 'rainbow'} onClick={() => setSettings({ ...settings, colour: 'rainbow' })}>
+          ?
+        </Button>
+      </div>
+      <div className="flex flex-row gap-2 items-center">
+        Gravity
+        <Button disabled={settings.gravity === 0} onClick={() => setSettings({ ...settings, gravity: 0 })}>
+          0
+        </Button>
+        <Button disabled={settings.gravity === 0.03} onClick={() => setSettings({ ...settings, gravity: 0.03 })}>
+          0.03
+        </Button>
+        <Button disabled={settings.gravity === 0.1} onClick={() => setSettings({ ...settings, gravity: 0.1 })}>
+          0.1
+        </Button>
+      </div>
+      <div className="flex flex-row gap-2 items-center">
+        Lifetime
+        <Button disabled={settings.lifetime === 2} onClick={() => setSettings({ ...settings, lifetime: 2 })}>
+          2
+        </Button>
+        <Button disabled={settings.lifetime === 5} onClick={() => setSettings({ ...settings, lifetime: 5 })}>
+          5
+        </Button>
+        <Button disabled={settings.lifetime === 10} onClick={() => setSettings({ ...settings, lifetime: 10 })}>
+          10
+        </Button>
+      </div>
+      <div className="flex flex-row gap-2 items-center">
+        Spread
+        <Button disabled={settings.spread === 0.3} onClick={() => setSettings({ ...settings, spread: 0.3 })}>
+          0.3
+        </Button>
+        <Button disabled={settings.spread === 1} onClick={() => setSettings({ ...settings, spread: 1 })}>
+          1
+        </Button>
+        <Button disabled={settings.spread === 3} onClick={() => setSettings({ ...settings, spread: 3 })}>
+          3
+        </Button>
+      </div>
+      <div className="flex flex-row gap-2 items-center">
+        Amount
+        <Button disabled={settings.amount === 30} onClick={() => setSettings({ ...settings, amount: 30 })}>
+          30
+        </Button>
+        <Button disabled={settings.amount === 100} onClick={() => setSettings({ ...settings, amount: 100 })}>
+          100
+        </Button>
+        <Button disabled={settings.amount === 1000} onClick={() => setSettings({ ...settings, amount: 1000 })}>
+          1000
+        </Button>
+      </div>
+      <div className="flex flex-row gap-2 items-center">
+        Size
+        <Button disabled={settings.size === 1} onClick={() => setSettings({ ...settings, size: 1 })}>
+          1
+        </Button>
+        <Button disabled={settings.size === 3} onClick={() => setSettings({ ...settings, size: 3 })}>
+          3
+        </Button>
+        <Button disabled={settings.size === 10} onClick={() => setSettings({ ...settings, size: 10 })}>
+          10
+        </Button>
+      </div>
+      <div className="flex flex-row gap-2 items-center">
+        <Button 
+          onClick={() => {
+            const randomSettings: Settings = {
+              amount: [30, 100, 1000][Math.floor(Math.random() * 3)] as Amount,
+              colour: ['red', 'green', 'blue', 'rainbow'][Math.floor(Math.random() * 4)] as ColourSetting,
+              gravity: [0, 0.03, 0.1][Math.floor(Math.random() * 3)] as GravitySetting,
+              lifetime: [2, 5, 10][Math.floor(Math.random() * 3)] as Lifetime,
+              size: [1, 3, 10][Math.floor(Math.random() * 3)] as Size,
+              spread: [0.3, 1, 3][Math.floor(Math.random() * 3)] as Spread
+            };
+            setSettings(randomSettings);
+          }}
+        >
+          Randomise All Settings
+        </Button>
+      </div>
+    </div>
+  );
 };
 
 const useDocumentBodyListener = (
