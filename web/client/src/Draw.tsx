@@ -369,11 +369,11 @@ export const Draw = () => {
           I'm feeling lucky
         </Button>
       </div>
-      <div className="grid gap-x-4 items-center grid-cols-2 gap-y-2 w-full">
-        <h4 className="scroll-m-20 text-xl font-semibold tracking-tight col-span-2 py-6">
+      <div className="grid gap-x-4 items-center grid-cols-2 w-full">
+        <h4 className="scroll-m-20 text-xl font-semibold tracking-tight col-span-2 py-3">
           Advanced settings
         </h4>
-        <div className="flex flex-row gap-2 items-center col-start-1 col-span-2 justify-evenly">
+        <div className="flex flex-row gap-2 items-center col-start-1 col-span-2 justify-evenly my-3">
           <ColourSetting
             settings={settings}
             setSettings={setSettings}
@@ -414,7 +414,7 @@ export const Draw = () => {
           Gravity ({settings.gravity})
         </h4>
         <Slider
-          className="w-full h-16"
+          className="w-full h-14"
           value={[settings.gravity]}
           onValueChange={(value) =>
             setSettings({ ...settings, gravity: value[0] })
@@ -427,7 +427,7 @@ export const Draw = () => {
           Lifetime ({settings.lifetime})
         </h4>
         <Slider
-          className="w-full h-16"
+          className="w-full h-14"
           value={[settings.lifetime]}
           onValueChange={(value) =>
             setSettings({ ...settings, lifetime: value[0] })
@@ -440,7 +440,7 @@ export const Draw = () => {
           Spread ({settings.spread})
         </h4>
         <Slider
-          className="w-full h-16"
+          className="w-full h-14"
           value={[settings.spread]}
           onValueChange={(value) =>
             setSettings({ ...settings, spread: value[0] })
@@ -453,7 +453,7 @@ export const Draw = () => {
           Amount ({settings.amount})
         </h4>
         <Slider
-          className="w-full h-16"
+          className="w-full h-14"
           value={[settings.amount]}
           onValueChange={(value) =>
             setSettings({ ...settings, amount: value[0] })
@@ -466,7 +466,7 @@ export const Draw = () => {
           Size ({settings.size})
         </h4>
         <Slider
-          className="w-full h-16"
+          className="w-full h-14"
           value={[settings.size]}
           onValueChange={(value) =>
             setSettings({ ...settings, size: value[0] })
