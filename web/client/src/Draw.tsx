@@ -111,6 +111,25 @@ type Settings = {
   spread: Spread;
 };
 
+interface Preset {
+  name: string;
+  settings: Settings;
+}
+
+const PRESETS: Preset[] = [
+  {
+    name: "Hello",
+    settings: {
+      amount: 10,
+      colour: "red",
+      gravity: 0.03,
+      lifetime: 10,
+      size: 3,
+      spread: 1,
+    },
+  },
+];
+
 const colourFromSetting = (setting: ColourSetting) => {
   switch (setting) {
     case "blue":
@@ -310,7 +329,39 @@ export const Draw = () => {
   return (
     <div className="w-full flex flex-col items-center gap-6">
       <Canvas ref={canvasRef} />
+      <div className="flex flex-col gap-2 w-full">
+        {PRESETS.map((preset) => (
+          <Button
+            key={preset.name}
+            onClick={() => setSettings(preset.settings)}
+          >
+            {preset.name}
+          </Button>
+        ))}
+        <Button
+          onClick={() => {
+            const randomSettings: Settings = {
+              amount: [30, 100, 1000][Math.floor(Math.random() * 3)] as Amount,
+              colour: ["red", "green", "blue", "rainbow"][
+                Math.floor(Math.random() * 4)
+              ] as ColourSetting,
+              gravity: [0, 0.03, 0.1][
+                Math.floor(Math.random() * 3)
+              ] as GravitySetting,
+              lifetime: [2, 5, 10][Math.floor(Math.random() * 3)] as Lifetime,
+              size: [1, 3, 10][Math.floor(Math.random() * 3)] as Size,
+              spread: [0.3, 1, 3][Math.floor(Math.random() * 3)] as Spread,
+            };
+            setSettings(randomSettings);
+          }}
+        >
+          Randomise All Settings
+        </Button>
+      </div>
       <div className="grid gap-x-4 items-center grid-cols-2 gap-y-2 w-full">
+        <h4 className="scroll-m-20 text-xl font-semibold tracking-tight col-span-2 py-6">
+          Advanced settings
+        </h4>
         <div className="flex flex-row gap-2 items-center col-start-1 col-span-2 justify-evenly">
           <ColourSetting
             settings={settings}
@@ -348,7 +399,7 @@ export const Draw = () => {
             className="bg-gradient-to-r from-blue-200 via-pink-200 to-green-200"
           />
         </div>
-        <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+        <h4 className="scroll-m-20 text-md font-medium tracking-tight">
           Gravity ({settings.gravity})
         </h4>
         <Slider
@@ -361,7 +412,7 @@ export const Draw = () => {
           min={0}
           step={0.01}
         />
-        <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+        <h4 className="scroll-m-20 text-md font-medium tracking-tight">
           Lifetime ({settings.lifetime})
         </h4>
         <Slider
@@ -374,7 +425,7 @@ export const Draw = () => {
           min={2}
           step={1}
         />
-        <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+        <h4 className="scroll-m-20 text-xl font-medium text-md tracking-tight">
           Spread ({settings.spread})
         </h4>
         <Slider
@@ -387,7 +438,7 @@ export const Draw = () => {
           min={0.3}
           step={0.1}
         />
-        <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+        <h4 className="scroll-m-20 text-md font-medium tracking-tight">
           Amount ({settings.amount})
         </h4>
         <Slider
@@ -400,7 +451,7 @@ export const Draw = () => {
           min={10}
           step={50}
         />
-        <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
+        <h4 className="scroll-m-20 text-md font-medium tracking-tight">
           Size ({settings.size})
         </h4>
         <Slider
@@ -412,27 +463,6 @@ export const Draw = () => {
           max={10}
           min={1}
         />
-      </div>
-      <div className="flex flex-row gap-2 items-center">
-        <Button
-          onClick={() => {
-            const randomSettings: Settings = {
-              amount: [30, 100, 1000][Math.floor(Math.random() * 3)] as Amount,
-              colour: ["red", "green", "blue", "rainbow"][
-                Math.floor(Math.random() * 4)
-              ] as ColourSetting,
-              gravity: [0, 0.03, 0.1][
-                Math.floor(Math.random() * 3)
-              ] as GravitySetting,
-              lifetime: [2, 5, 10][Math.floor(Math.random() * 3)] as Lifetime,
-              size: [1, 3, 10][Math.floor(Math.random() * 3)] as Size,
-              spread: [0.3, 1, 3][Math.floor(Math.random() * 3)] as Spread,
-            };
-            setSettings(randomSettings);
-          }}
-        >
-          Randomise All Settings
-        </Button>
       </div>
     </div>
   );
