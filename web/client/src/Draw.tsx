@@ -309,7 +309,7 @@ export const Draw = () => {
   return (
     <div className="w-full flex flex-col items-center gap-6">
       <Canvas ref={canvasRef} />
-      <div className="grid gap-x-4 items-center grid-cols-2 gap-y-8 w-full">
+      <div className="grid gap-x-4 items-center grid-cols-2 w-full">
         <div className="flex flex-row gap-2 items-center col-start-1 col-span-2">
         <h4 className="scroll-m-20 text-xl font-semibold tracking-tight">
           Colour
