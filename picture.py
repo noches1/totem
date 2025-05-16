@@ -325,7 +325,6 @@ class Picture(Matrix):
                 frame = gif.copy()
                 if frame_index >= len(self.canvases):
                     self.canvases.append(self.matrix.CreateFrameCanvas())
-                self.canvases[frame_index].Clear()
                 self.canvases[frame_index].SetImage(frame.convert("RGB"))
                 frames.append(self.canvases[frame_index])
             gif.close()
