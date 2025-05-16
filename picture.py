@@ -379,7 +379,7 @@ class Picture(Matrix):
             if self.thread.stopped():
                 break
 
-    def scroll_text(self, string, wait_time=0.05, textsize="normal", once=False):
+    def scroll_text(self, string, wait_time=0.005, textsize="normal", once=False):
         font = graphics.Font()
         if textsize == "normal":
             font.LoadFont(f"{DIR}/fonts/9x18.bdf")
@@ -396,7 +396,7 @@ class Picture(Matrix):
                 color = RAINBOW_COLORS[(pos // 2) % 20]
             self.canvas.Clear()
             length = graphics.DrawText(self.canvas, font, pos, 32, color, string)
-            pos -= 1
+            pos -= 2
             if pos + length < 0:
                 pos = self.canvas.width
                 if once:
