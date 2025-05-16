@@ -93,45 +93,44 @@ type Colour = {
 const RED = {
   r: 255,
   g: 0,
-  b: 0
-} satisfies Colour
+  b: 0,
+} satisfies Colour;
 
 const BLUE = {
   r: 0,
   g: 0,
-  b: 255
-} satisfies Colour
+  b: 255,
+} satisfies Colour;
 
 const GREEN = {
   r: 0,
   g: 255,
-  b: 0
-} satisfies Colour
+  b: 0,
+} satisfies Colour;
 
 const YELLOW = {
   r: 255,
   g: 255,
-  b: 0
-} satisfies Colour
+  b: 0,
+} satisfies Colour;
 
 const VIOLET = {
   r: 148,
   g: 0,
-  b: 211
-} satisfies Colour
+  b: 211,
+} satisfies Colour;
 
 const INDIGO = {
   r: 75,
   g: 0,
-  b: 130
-} satisfies Colour
+  b: 130,
+} satisfies Colour;
 
 const ORANGE = {
   r: 255,
   g: 127,
-  b: 0
-} satisfies Colour
-
+  b: 0,
+} satisfies Colour;
 
 const COLOUR_RANDOMNESS = 200;
 
@@ -235,12 +234,21 @@ function interpolateValues(values: number[], t: number): number {
   return values[idx] * (1 - frac) + values[idx + 1] * frac;
 }
 
-function getAnimatedColour(colours:Colour[], progress: number) {
+function getAnimatedColour(colours: Colour[], progress: number) {
   return {
-    r: interpolateValues(colours.map(colour => colour.r), progress),
-    g: interpolateValues(colours.map(colour => colour.g), progress),
-    b: interpolateValues(colours.map(colour => colour.b), progress),
-  }
+    r: interpolateValues(
+      colours.map((colour) => colour.r),
+      progress,
+    ),
+    g: interpolateValues(
+      colours.map((colour) => colour.g),
+      progress,
+    ),
+    b: interpolateValues(
+      colours.map((colour) => colour.b),
+      progress,
+    ),
+  };
 }
 
 const ANIMATED_COLOUR_FRAMES = 1200; // cycles through all the colours within x frames
@@ -260,16 +268,19 @@ const colourFromSetting = (setting: ColourSetting, currentFrame: number) => {
     case "animated":
       return getAnimatedColour([RED, BLUE, RED], progress);
     case "animated-rainbow":
-    return getAnimatedColour([RED, ORANGE, YELLOW, GREEN, BLUE, INDIGO, VIOLET, RED], progress)
+      return getAnimatedColour(
+        [RED, ORANGE, YELLOW, GREEN, BLUE, INDIGO, VIOLET, RED],
+        progress,
+      );
   }
 };
 
 const randomnessFromSetting = (setting: ColourSetting) => {
   switch (setting) {
     case "animated":
-      return 100;
+      return 130;
     case "animated-rainbow":
-      return 100;
+      return 130;
     default:
       return COLOUR_RANDOMNESS;
   }
