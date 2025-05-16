@@ -215,7 +215,7 @@ interface Preset {
 
 const PRESETS: Preset[] = [
   {
-    name: "Default",
+    name: "Icy Rose Cascade",
     settings: {
       amount: 100,
       colour: "blue",
@@ -223,17 +223,6 @@ const PRESETS: Preset[] = [
       lifetime: 10,
       size: 3,
       spread: 1,
-    },
-  },
-  {
-    name: "Sketch",
-    settings: {
-      amount: 100,
-      colour: "rainbow-light",
-      gravity: 0,
-      lifetime: 100,
-      size: 2,
-      spread: 0,
     },
   },
   {
@@ -248,14 +237,25 @@ const PRESETS: Preset[] = [
     },
   },
   {
-    name: "Icy Rose Cascade",
+    name: "Verdant Bloom",
     settings: {
-      colour: "blue",
-      amount: 1000,
-      gravity: 0.03,
-      lifetime: 5,
-      spread: 1,
+      colour: "green",
+      amount: 100,
+      gravity: 0,
+      lifetime: 10,
+      spread: 0.3,
       size: 3,
+    },
+  },
+  {
+    name: "Sketch",
+    settings: {
+      amount: 100,
+      colour: "rainbow-light",
+      gravity: 0,
+      lifetime: 100,
+      size: 2,
+      spread: 0,
     },
   },
 ];
@@ -533,6 +533,11 @@ export const Draw = () => {
       <div className="flex flex-col gap-2 w-full">
         {PRESETS.map((preset) => (
           <Button
+            className={
+              preset.settings === settings
+                ? "outline outline-2 outline-solid outline-primary outline-offset-2"
+                : ""
+            }
             key={preset.name}
             onClick={() => setSettings(preset.settings)}
           >
