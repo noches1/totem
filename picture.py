@@ -379,7 +379,7 @@ class Picture(Matrix):
             if self.thread.stopped():
                 break
 
-    def scroll_text(self, string, wait_time=0.005, textsize="normal", once=False):
+    def scroll_text(self, string, wait_time=0.015, textsize="normal", once=False):
         font = graphics.Font()
         if textsize == "normal":
             font.LoadFont(f"{DIR}/fonts/9x18.bdf")
