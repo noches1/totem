@@ -1,3 +1,5 @@
+import argparse
+
 from PIL import Image, ImageSequence, ImageOps
 from pathlib import Path
 
@@ -51,24 +53,47 @@ def downsize_gif(in_path: str, out_path: str, size=(64, 64)):
         print(f"Saving {out_path}")
 
 
-def downsize():
-    for p in images_dir.rglob("*.*"):
-        if p.suffix.lower() not in SUPPORTED_EXTENSIONS:
-            print(f"Skipping {p} - not a supported extension")
-            continue
+def downsize_file(p: Path):
+    if p.suffix.lower() not in SUPPORTED_EXTENSIONS:
+        print(f"Skipping {p} - not a supported extension")
+        return
 
-        image_path = str(p)
-        if p.suffix.lower().endswith(".gif"):
-            downsize_gif(image_path, image_path, size=TOTEM_LED_SIZE)
-        else:
-            with Image.open(image_path) as img:
-                if img.height == 64 and img.width == 64:
-                    continue
-                thumb = ImageOps.fit(
-                    img, TOTEM_LED_SIZE, method=Image.LANCZOS, centering=(0.5, 0.5)
-                )
-                print(f"Saving {image_path}")
-                thumb.save(image_path)
+    image_path = str(p)
+    if p.suffix.lower().endswith(".gif"):
+        downsize_gif(image_path, image_path, size=TOTEM_LED_SIZE)
+    else:
+        with Image.open(image_path) as img:
+            if img.height == 64 and img.width == 64:
+                return
+            thumb = ImageOps.fit(
+                img, TOTEM_LED_SIZE, method=Image.LANCZOS, centering=(0.5, 0.5)
+            )
+            print(f"Saving {image_path}")
+            thumb.save(image_path)
 
 
-downsize()
+def walk_path(path: Path):
+    if path.is_file():
+        downsize_file(path)
+    elif path.is_dir():
+        for child in path.rglob("*.*"):
+            downsize_file(child)
+    else:
+        print(f"Warning: {str(path)} not found")
+
+
+def main():
+    p = argparse.ArgumentParser(description="downsize images and gifs to 64x64")
+    p.add_argument(
+        "paths",
+        nargs="+",
+        help="One or more files or directories to downsize",
+        type=Path,
+    )
+    args = p.parse_args()
+    for path in args.paths:
+        walk_path(path)
+
+
+if __name__ == "__main__":
+    main()
