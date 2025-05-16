@@ -350,7 +350,7 @@ class Picture(Matrix):
             else:
                 self.matrix.SwapOnVSync(
                     frames[cur_frame],
-                    framerate_fraction=max(durations[cur_frame] // 6.25, 1),
+                    framerate_fraction=max(durations[cur_frame] // 10, 1),
                 )
             if cur_frame == num_frames - 1:
                 cur_frame = 0
@@ -369,7 +369,7 @@ class Picture(Matrix):
             else:
                 self.matrix.SwapOnVSync(
                     frames[cur_frame],
-                    framerate_fraction=max(durations[cur_frame] // 6.25, 1),
+                    framerate_fraction=max(durations[cur_frame] // 10, 1),
                 )
             if cur_frame == num_frames - 1:
                 cur_frame = 0
