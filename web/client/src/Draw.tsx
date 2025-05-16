@@ -90,6 +90,54 @@ type Colour = {
   b: number;
 };
 
+const BLACK = {
+  r: 0,
+  g: 0,
+  b: 0,
+} satisfies Colour;
+
+const WHITE_50 = {
+  r: 24,
+  g: 24,
+  b: 24,
+} satisfies Colour;
+
+const WHITE_100 = {
+  r: 48,
+  g: 48,
+  b: 48,
+} satisfies Colour;
+
+const WHITE_200 = {
+  r: 96,
+  g: 96,
+  b: 96,
+} satisfies Colour;
+
+const WHITE_300 = {
+  r: 132,
+  g: 132,
+  b: 132,
+} satisfies Colour;
+
+const WHITE_400 = {
+  r: 188,
+  g: 188,
+  b: 188,
+} satisfies Colour;
+
+const WHITE_500 = {
+  r: 212,
+  g: 212,
+  b: 212,
+} satisfies Colour;
+
+const WHITE_600 = {
+  r: 255,
+  g: 255,
+  b: 255,
+} satisfies Colour;
+
 const RED = {
   r: 255,
   g: 0,
@@ -266,7 +314,20 @@ const colourFromSetting = (setting: ColourSetting, currentFrame: number) => {
     case "rainbow-light":
       return { r: 175, g: 200, b: 200 };
     case "animated":
-      return getAnimatedColour([RED, BLUE, RED], progress);
+      return getAnimatedColour(
+        [
+          BLACK,
+          WHITE_50,
+          WHITE_100,
+          WHITE_200,
+          WHITE_300,
+          WHITE_400,
+          WHITE_500,
+          WHITE_600,
+          BLACK,
+        ],
+        progress,
+      );
     case "animated-rainbow":
       return getAnimatedColour(
         [RED, ORANGE, YELLOW, GREEN, BLUE, INDIGO, VIOLET, RED],
@@ -278,7 +339,7 @@ const colourFromSetting = (setting: ColourSetting, currentFrame: number) => {
 const randomnessFromSetting = (setting: ColourSetting) => {
   switch (setting) {
     case "animated":
-      return 130;
+      return 0;
     case "animated-rainbow":
       return 130;
     default:
