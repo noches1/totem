@@ -434,6 +434,9 @@ class Picture(Matrix):
         elif dirname == "demon":
             iters = 1
             framerate = 10
+        elif dirname == "pope":
+            iters = 1
+            framerate = 10
         else:
             iters = 2
             framerate = 10
